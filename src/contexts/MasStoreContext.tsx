@@ -12,6 +12,9 @@ export type Student = {
   lecturerIds: string[];
   status: "Active" | "Inactive";
   lastSeen: string;
+  email?: string;
+  phone?: string;
+  enrolledDate?: string;
 };
 
 export type Admin = {
@@ -57,21 +60,14 @@ type StoreAction =
   | { type: "ADD_LOG"; payload: AttendanceLog }
   | { type: "ADD_STUDENT"; payload: Student }
   | { type: "DELETE_STUDENT"; payload: { studentId: string } }
+  | { type: "UPDATE_STUDENT"; payload: { studentId: string; updates: Partial<Student> } }
   | { type: "ADD_LECTURER"; payload: Lecturer }
   | { type: "DELETE_LECTURER"; payload: { lecturerId: string } }
-  | {
-      type: "UPDATE_STUDENT_LECTURERS";
-      payload: { studentId: string; lecturerIds: string[] };
-    }
-  | {
-      type: "UPDATE_LECTURER_STATUS";
-      payload: { lecturerId: string; status: Lecturer["status"] };
-    }
-  | {
-      type: "UPDATE_STUDENT_LAST_SEEN";
-      payload: { studentId: string; timestamp: string };
-    }
-  | { type: "DELETE_LOGS_BY_DATE"; payload: { date: string } };
+  | { type: "UPDATE_STUDENT_LECTURERS"; payload: { studentId: string; lecturerIds: string[] } }
+  | { type: "UPDATE_LECTURER_STATUS"; payload: { lecturerId: string; status: Lecturer["status"] } }
+  | { type: "UPDATE_STUDENT_LAST_SEEN"; payload: { studentId: string; timestamp: string } }
+  | { type: "DELETE_LOGS_BY_DATE"; payload: { date: string } }
+  | { type: "IMPORT_STUDENTS"; payload: Student[] };
 
 const initialState: StoreState = {
   students: [
@@ -82,11 +78,13 @@ const initialState: StoreState = {
       program: "Computer Engineering",
       classId: "cl-01",
       className: "Database System (CSC 301)",
-      photoUrl:
-        "https://api.dicebear.com/9.x/initials/svg?seed=Alyssa%20Morgan",
+      photoUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Alyssa%20Morgan",
       lecturerIds: ["lec-01"],
       status: "Active",
       lastSeen: "08:13 AM",
+      email: "alyssa.morgan@university.edu",
+      phone: "+234 801 234 5678",
+      enrolledDate: "2024-09-01",
     },
     {
       id: "st-102",
@@ -95,11 +93,12 @@ const initialState: StoreState = {
       program: "Information Systems",
       classId: "cl-02",
       className: "Intelligent Systems (CSC 475)",
-      photoUrl:
-        "https://api.dicebear.com/9.x/initials/svg?seed=Miguel%20Santos",
+      photoUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Miguel%20Santos",
       lecturerIds: ["lec-02"],
       status: "Active",
       lastSeen: "08:20 AM",
+      email: "miguel.santos@university.edu",
+      enrolledDate: "2024-09-01",
     },
     {
       id: "st-103",
@@ -112,6 +111,8 @@ const initialState: StoreState = {
       lecturerIds: ["lec-03"],
       status: "Inactive",
       lastSeen: "Yesterday",
+      email: "priya.nair@university.edu",
+      enrolledDate: "2024-09-01",
     },
     {
       id: "st-104",
@@ -124,6 +125,8 @@ const initialState: StoreState = {
       lecturerIds: ["lec-01"],
       status: "Active",
       lastSeen: "08:05 AM",
+      email: "noah.delgado@university.edu",
+      enrolledDate: "2024-09-01",
     },
     {
       id: "st-105",
@@ -136,6 +139,36 @@ const initialState: StoreState = {
       lecturerIds: ["lec-03"],
       status: "Active",
       lastSeen: "08:17 AM",
+      email: "zara.bennett@university.edu",
+      enrolledDate: "2024-09-01",
+    },
+    {
+      id: "st-106",
+      name: "James Wilson",
+      matricNumber: "MAS-2025-045",
+      program: "Software Engineering",
+      classId: "cl-01",
+      className: "Database System (CSC 301)",
+      photoUrl: "https://api.dicebear.com/9.x/initials/svg?seed=James%20Wilson",
+      lecturerIds: ["lec-01"],
+      status: "Active",
+      lastSeen: "08:22 AM",
+      email: "james.wilson@university.edu",
+      enrolledDate: "2024-09-01",
+    },
+    {
+      id: "st-107",
+      name: "Emma Thompson",
+      matricNumber: "MAS-2025-078",
+      program: "Computer Science",
+      classId: "cl-02",
+      className: "Intelligent Systems (CSC 475)",
+      photoUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Emma%20Thompson",
+      lecturerIds: ["lec-02"],
+      status: "Active",
+      lastSeen: "08:15 AM",
+      email: "emma.thompson@university.edu",
+      enrolledDate: "2024-09-01",
     },
   ],
   admins: [
@@ -147,13 +180,40 @@ const initialState: StoreState = {
     },
   ],
   lecturers: [
-    // LECTURERS DATA ARE SUPPOSED TO BE HERE
+    {
+      id: "lec-01",
+      name: "Dr. Sarah Johnson",
+      email: "sarah.johnson@university.edu",
+      password: "lecturer123",
+      classId: "cl-01",
+      className: "Database System (CSC 301)",
+      status: "Active",
+    },
+    {
+      id: "lec-02",
+      name: "Prof. Michael Chen",
+      email: "michael.chen@university.edu",
+      password: "lecturer123",
+      classId: "cl-02",
+      className: "Intelligent Systems (CSC 475)",
+      status: "Active",
+    },
+    {
+      id: "lec-03",
+      name: "Dr. Emily Brown",
+      email: "emily.brown@university.edu",
+      password: "lecturer123",
+      classId: "cl-03",
+      className: "Human Computer Interaction (CSC 582)",
+      status: "Pending",
+    },
   ],
   logs: [
     {
       id: "log-1",
       studentId: "st-104",
       studentName: "Noah Delgado",
+      studentMatricNumber: "MAS-2025-052",
       classId: "cl-01",
       className: "Database System (CSC 301)",
       sessionLabel: "1st Class",
@@ -167,6 +227,7 @@ const initialState: StoreState = {
       id: "log-2",
       studentId: "st-101",
       studentName: "Alyssa Morgan",
+      studentMatricNumber: "MAS-2025-014",
       classId: "cl-01",
       className: "Database System (CSC 301)",
       sessionLabel: "1st Class",
@@ -180,6 +241,7 @@ const initialState: StoreState = {
       id: "log-3",
       studentId: "st-102",
       studentName: "Miguel Santos",
+      studentMatricNumber: "MAS-2025-109",
       classId: "cl-02",
       className: "Intelligent Systems (CSC 475)",
       sessionLabel: "2nd Class",
@@ -189,13 +251,55 @@ const initialState: StoreState = {
       timestamp: "08:20 AM",
       signal: "fp-4588 • 98% match",
     },
+    {
+      id: "log-4",
+      studentId: "st-106",
+      studentName: "James Wilson",
+      studentMatricNumber: "MAS-2025-045",
+      classId: "cl-01",
+      className: "Database System (CSC 301)",
+      sessionLabel: "1st Class",
+      sessionDate: "2025-01-17",
+      sessionStart: "08:00 AM",
+      method: "Fingerprint",
+      timestamp: "08:22 AM",
+      signal: "fp-8472 • 97% match",
+    },
+    {
+      id: "log-5",
+      studentId: "st-107",
+      studentName: "Emma Thompson",
+      studentMatricNumber: "MAS-2025-078",
+      classId: "cl-02",
+      className: "Intelligent Systems (CSC 475)",
+      sessionLabel: "1st Class",
+      sessionDate: "2025-01-17",
+      sessionStart: "09:30 AM",
+      method: "Face",
+      timestamp: "08:15 AM",
+      signal: "face-3891 • 97% liveness",
+    },
+    {
+      id: "log-6",
+      studentId: "st-101",
+      studentName: "Alyssa Morgan",
+      studentMatricNumber: "MAS-2025-014",
+      classId: "cl-01",
+      className: "Database System (CSC 301)",
+      sessionLabel: "2nd Class",
+      sessionDate: "2025-01-17",
+      sessionStart: "10:00 AM",
+      method: "Fingerprint",
+      timestamp: "10:05 AM",
+      signal: "fp-2043 • 95% match",
+    },
   ],
 };
 
 const reducer = (state: StoreState, action: StoreAction): StoreState => {
   switch (action.type) {
     case "ADD_LOG":
-      return { ...state, logs: [action.payload, ...state.logs].slice(0, 12) };
+      return { ...state, logs: [action.payload, ...state.logs] };
     case "ADD_STUDENT":
       return { ...state, students: [action.payload, ...state.students] };
     case "DELETE_STUDENT":
@@ -203,6 +307,15 @@ const reducer = (state: StoreState, action: StoreAction): StoreState => {
         ...state,
         students: state.students.filter(
           (student) => student.id !== action.payload.studentId,
+        ),
+      };
+    case "UPDATE_STUDENT":
+      return {
+        ...state,
+        students: state.students.map((student) =>
+          student.id === action.payload.studentId
+            ? { ...student, ...action.payload.updates }
+            : student,
         ),
       };
     case "ADD_LECTURER":
@@ -258,6 +371,11 @@ const reducer = (state: StoreState, action: StoreAction): StoreState => {
           (log) => log.sessionDate !== action.payload.date,
         ),
       };
+    case "IMPORT_STUDENTS":
+      return {
+        ...state,
+        students: [...action.payload, ...state.students],
+      };
     default:
       return state;
   }
@@ -268,59 +386,49 @@ const MasStoreContext = createContext<
       addLog: (log: AttendanceLog) => void;
       addStudent: (student: Student) => void;
       deleteStudent: (studentId: string) => void;
+      updateStudent: (studentId: string, updates: Partial<Student>) => void;
       addLecturer: (lecturer: Lecturer) => void;
       deleteLecturer: (lecturerId: string) => void;
-      updateStudentLecturers: (
-        studentId: string,
-        lecturerIds: string[],
-      ) => void;
-      updateLecturerStatus: (
-        lecturerId: string,
-        status: Lecturer["status"],
-      ) => void;
+      updateStudentLecturers: (studentId: string, lecturerIds: string[]) => void;
+      updateLecturerStatus: (lecturerId: string, status: Lecturer["status"]) => void;
       updateStudentLastSeen: (studentId: string, timestamp: string) => void;
       deleteLogsByDate: (date: string) => void;
+      importStudents: (students: Student[]) => void;
+      getStudentById: (studentId: string) => Student | undefined;
+      getStudentAttendance: (studentId: string) => AttendanceLog[];
+      getAttendanceRate: (studentId: string) => number;
     })
   | undefined
 >(undefined);
 
-export const MasStoreProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const MasStoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const addLog = (log: AttendanceLog) =>
-    dispatch({ type: "ADD_LOG", payload: log });
-  const addStudent = (student: Student) =>
-    dispatch({ type: "ADD_STUDENT", payload: student });
-  const deleteStudent = (studentId: string) =>
-    dispatch({ type: "DELETE_STUDENT", payload: { studentId } });
-  const addLecturer = (lecturer: Lecturer) =>
-    dispatch({ type: "ADD_LECTURER", payload: lecturer });
-  const deleteLecturer = (lecturerId: string) =>
-    dispatch({ type: "DELETE_LECTURER", payload: { lecturerId } });
+  const addLog = (log: AttendanceLog) => dispatch({ type: "ADD_LOG", payload: log });
+  const addStudent = (student: Student) => dispatch({ type: "ADD_STUDENT", payload: student });
+  const deleteStudent = (studentId: string) => dispatch({ type: "DELETE_STUDENT", payload: { studentId } });
+  const updateStudent = (studentId: string, updates: Partial<Student>) =>
+    dispatch({ type: "UPDATE_STUDENT", payload: { studentId, updates } });
+  const addLecturer = (lecturer: Lecturer) => dispatch({ type: "ADD_LECTURER", payload: lecturer });
+  const deleteLecturer = (lecturerId: string) => dispatch({ type: "DELETE_LECTURER", payload: { lecturerId } });
   const updateStudentLecturers = (studentId: string, lecturerIds: string[]) =>
-    dispatch({
-      type: "UPDATE_STUDENT_LECTURERS",
-      payload: { studentId, lecturerIds },
-    });
-  const updateLecturerStatus = (
-    lecturerId: string,
-    status: Lecturer["status"],
-  ) =>
-    dispatch({
-      type: "UPDATE_LECTURER_STATUS",
-      payload: { lecturerId, status },
-    });
+    dispatch({ type: "UPDATE_STUDENT_LECTURERS", payload: { studentId, lecturerIds } });
+  const updateLecturerStatus = (lecturerId: string, status: Lecturer["status"]) =>
+    dispatch({ type: "UPDATE_LECTURER_STATUS", payload: { lecturerId, status } });
   const updateStudentLastSeen = (studentId: string, timestamp: string) =>
-    dispatch({
-      type: "UPDATE_STUDENT_LAST_SEEN",
-      payload: { studentId, timestamp },
-    });
-  const deleteLogsByDate = (date: string) =>
-    dispatch({ type: "DELETE_LOGS_BY_DATE", payload: { date } });
+    dispatch({ type: "UPDATE_STUDENT_LAST_SEEN", payload: { studentId, timestamp } });
+  const deleteLogsByDate = (date: string) => dispatch({ type: "DELETE_LOGS_BY_DATE", payload: { date } });
+  const importStudents = (students: Student[]) => dispatch({ type: "IMPORT_STUDENTS", payload: students });
+  
+  const getStudentById = (studentId: string) => state.students.find((s) => s.id === studentId);
+  const getStudentAttendance = (studentId: string) => state.logs.filter((l) => l.studentId === studentId);
+  const getAttendanceRate = (studentId: string) => {
+    const studentLogs = getStudentAttendance(studentId);
+    const uniqueDates = new Set(state.logs.map((l) => l.sessionDate));
+    const studentDates = new Set(studentLogs.map((l) => l.sessionDate));
+    if (uniqueDates.size === 0) return 100;
+    return Math.round((studentDates.size / uniqueDates.size) * 100);
+  };
 
   const value = useMemo(
     () => ({
@@ -328,12 +436,17 @@ export const MasStoreProvider = ({
       addLog,
       addStudent,
       deleteStudent,
+      updateStudent,
       addLecturer,
       deleteLecturer,
       updateStudentLecturers,
       updateLecturerStatus,
       updateStudentLastSeen,
       deleteLogsByDate,
+      importStudents,
+      getStudentById,
+      getStudentAttendance,
+      getAttendanceRate,
     }),
     [state],
   );
