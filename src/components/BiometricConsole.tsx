@@ -1,220 +1,185 @@
-import { useRef, useState, useCallback, useEffect } from "react";
-import Webcam from "react-webcam";
-import {
-  Activity,
-  Fingerprint,
-  ScanFace,
-  X,
-  CheckCircle2,
-  AlertTriangle,
-  Loader2,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useBiometric } from "../contexts/BiometricContext";
+import { useRef, useState, useCallback, useEffect } from 'react'
+import Webcam from 'react-webcam'
+import { Activity, Fingerprint, ScanFace, X, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useBiometric } from '../contexts/BiometricContext'
 
-type FaceVerificationStatus =
-  | "idle"
-  | "scanning"
-  | "detecting"
-  | "verifying"
-  | "success"
-  | "failed";
-type FingerprintStatus =
-  | "idle"
-  | "scanning"
-  | "verifying"
-  | "success"
-  | "failed";
+type FaceVerificationStatus = 'idle' | 'scanning' | 'detecting' | 'verifying' | 'success' | 'failed'
+type FingerprintStatus = 'idle' | 'scanning' | 'verifying' | 'success' | 'failed'
 
 interface BiometricConsoleProps {
-  onFingerprint: () => void;
-  onFaceVerificationComplete: (
-    success: boolean,
-    capturedImage: string | null,
-  ) => void;
+  onFingerprint: () => void
+  onFaceVerificationComplete: (success: boolean, capturedImage: string | null) => void
 }
 
-const BiometricConsole = ({
-  onFingerprint,
-  onFaceVerificationComplete,
-}: BiometricConsoleProps) => {
-  const { isScanning, lastSignal } = useBiometric();
-  const webcamRef = useRef<Webcam>(null);
-
-  const [isFaceMode, setIsFaceMode] = useState(false);
-  const [isFingerprintMode, setIsFingerprintMode] = useState(false);
-  const [verificationStatus, setVerificationStatus] =
-    useState<FaceVerificationStatus>("idle");
-  const [fingerprintStatus, setFingerprintStatus] =
-    useState<FingerprintStatus>("idle");
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [faceDetected, setFaceDetected] = useState(false);
-  const [detectionProgress, setDetectionProgress] = useState(0);
-  const [fingerprintProgress, setFingerprintProgress] = useState(0);
-  const hasTriggeredVerification = useRef(false);
+const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: BiometricConsoleProps) => {
+  const { isScanning, lastSignal } = useBiometric()
+  const webcamRef = useRef<Webcam>(null)
+  
+  const [isFaceMode, setIsFaceMode] = useState(false)
+  const [isFingerprintMode, setIsFingerprintMode] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState<FaceVerificationStatus>('idle')
+  const [fingerprintStatus, setFingerprintStatus] = useState<FingerprintStatus>('idle')
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  const [faceDetected, setFaceDetected] = useState(false)
+  const [detectionProgress, setDetectionProgress] = useState(0)
+  const [fingerprintProgress, setFingerprintProgress] = useState(0)
+  const hasTriggeredVerification = useRef(false)
 
   const videoConstraints = {
     width: 480,
     height: 360,
-    facingMode: "user",
-  };
+    facingMode: 'user'
+  }
 
   // Reset state when face mode is activated
   useEffect(() => {
     if (isFaceMode) {
-      setVerificationStatus("scanning");
-      setCapturedImage(null);
-      setCameraError(null);
-      setFaceDetected(false);
-      setDetectionProgress(0);
-      hasTriggeredVerification.current = false;
+      setVerificationStatus('scanning')
+      setCapturedImage(null)
+      setCameraError(null)
+      setFaceDetected(false)
+      setDetectionProgress(0)
+      hasTriggeredVerification.current = false
     } else {
-      setVerificationStatus("idle");
+      setVerificationStatus('idle')
     }
-  }, [isFaceMode]);
+  }, [isFaceMode])
 
   // Auto face detection and verification
   useEffect(() => {
-    if (
-      !isFaceMode ||
-      verificationStatus !== "scanning" ||
-      hasTriggeredVerification.current
-    )
-      return;
+    if (!isFaceMode || verificationStatus !== 'scanning' || hasTriggeredVerification.current) return
 
-    let detectionCount = 0;
-    const requiredDetections = 8;
-
+    let detectionCount = 0
+    const requiredDetections = 8
+    
     const interval = setInterval(() => {
-      const detected = Math.random() > 0.25;
-
+      const detected = Math.random() > 0.25
+      
       if (detected) {
-        detectionCount++;
-        setFaceDetected(true);
-        setDetectionProgress((detectionCount / requiredDetections) * 100);
-
-        if (
-          detectionCount >= requiredDetections &&
-          !hasTriggeredVerification.current
-        ) {
-          hasTriggeredVerification.current = true;
-          clearInterval(interval);
-          handleAutoCapture();
+        detectionCount++
+        setFaceDetected(true)
+        setDetectionProgress((detectionCount / requiredDetections) * 100)
+        
+        if (detectionCount >= requiredDetections && !hasTriggeredVerification.current) {
+          hasTriggeredVerification.current = true
+          clearInterval(interval)
+          handleAutoCapture()
         }
       } else {
         if (detectionCount > 0) {
-          detectionCount = Math.max(0, detectionCount - 2);
-          setDetectionProgress((detectionCount / requiredDetections) * 100);
+          detectionCount = Math.max(0, detectionCount - 2)
+          setDetectionProgress((detectionCount / requiredDetections) * 100)
         }
         if (detectionCount === 0) {
-          setFaceDetected(false);
+          setFaceDetected(false)
         }
       }
-    }, 200);
+    }, 200)
 
-    return () => clearInterval(interval);
-  }, [isFaceMode, verificationStatus]);
+    return () => clearInterval(interval)
+  }, [isFaceMode, verificationStatus])
 
   const handleAutoCapture = useCallback(() => {
     if (webcamRef.current) {
-      setVerificationStatus("detecting");
-
+      setVerificationStatus('detecting')
+      
       setTimeout(() => {
-        const imageSrc = webcamRef.current?.getScreenshot();
+        const imageSrc = webcamRef.current?.getScreenshot()
         if (imageSrc) {
-          setCapturedImage(imageSrc);
-          setVerificationStatus("verifying");
-
+          setCapturedImage(imageSrc)
+          setVerificationStatus('verifying')
+          
           setTimeout(() => {
-            const isSuccess = Math.random() > 0.15;
-            setVerificationStatus(isSuccess ? "success" : "failed");
-
+            const isSuccess = Math.random() > 0.15
+            setVerificationStatus(isSuccess ? 'success' : 'failed')
+            
             setTimeout(() => {
-              onFaceVerificationComplete(isSuccess, imageSrc);
+              onFaceVerificationComplete(isSuccess, imageSrc)
               setTimeout(() => {
-                setIsFaceMode(false);
-              }, 500);
-            }, 1000);
-          }, 1500);
+                setIsFaceMode(false)
+              }, 500)
+            }, 1000)
+          }, 1500)
         } else {
-          setVerificationStatus("failed");
+          setVerificationStatus('failed')
           setTimeout(() => {
-            onFaceVerificationComplete(false, null);
-          }, 1200);
+            onFaceVerificationComplete(false, null)
+          }, 1200)
         }
-      }, 500);
+      }, 500)
     }
-  }, [onFaceVerificationComplete]);
+  }, [onFaceVerificationComplete])
 
   const handleStartFaceVerification = () => {
-    setIsFaceMode(true);
-  };
+    setIsFaceMode(true)
+  }
 
   const handleCancelFaceVerification = () => {
-    setIsFaceMode(false);
-    setCapturedImage(null);
-    setVerificationStatus("idle");
-    setCameraError(null);
-    setFaceDetected(false);
-    setDetectionProgress(0);
-    hasTriggeredVerification.current = false;
-  };
+    setIsFaceMode(false)
+    setCapturedImage(null)
+    setVerificationStatus('idle')
+    setCameraError(null)
+    setFaceDetected(false)
+    setDetectionProgress(0)
+    hasTriggeredVerification.current = false
+  }
 
   const handleRetry = () => {
-    setCapturedImage(null);
-    setVerificationStatus("scanning");
-    setFaceDetected(false);
-    setDetectionProgress(0);
-    hasTriggeredVerification.current = false;
-  };
+    setCapturedImage(null)
+    setVerificationStatus('scanning')
+    setFaceDetected(false)
+    setDetectionProgress(0)
+    hasTriggeredVerification.current = false
+  }
 
   const handleCameraError = useCallback(() => {
-    setCameraError("Camera access denied. Please grant permission.");
-  }, []);
+    setCameraError('Camera access denied. Please grant permission.')
+  }, [])
 
   // Fingerprint scanning with animation
   const handleStartFingerprint = () => {
-    setIsFingerprintMode(true);
-    setFingerprintStatus("scanning");
-    setFingerprintProgress(0);
-
+    setIsFingerprintMode(true)
+    setFingerprintStatus('scanning')
+    setFingerprintProgress(0)
+    
     // Animate progress
-    let progress = 0;
+    let progress = 0
     const progressInterval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
+      progress += Math.random() * 15 + 5
       if (progress >= 100) {
-        progress = 100;
-        clearInterval(progressInterval);
-        setFingerprintProgress(100);
-        setFingerprintStatus("verifying");
-
+        progress = 100
+        clearInterval(progressInterval)
+        setFingerprintProgress(100)
+        setFingerprintStatus('verifying')
+        
         // Trigger actual fingerprint scan
         setTimeout(() => {
-          onFingerprint();
-
+          onFingerprint()
+          
           // Simulate result (actual result comes from parent)
           setTimeout(() => {
-            const isSuccess = Math.random() > 0.15;
-            setFingerprintStatus(isSuccess ? "success" : "failed");
-
+            const isSuccess = Math.random() > 0.15
+            setFingerprintStatus(isSuccess ? 'success' : 'failed')
+            
             setTimeout(() => {
-              setIsFingerprintMode(false);
-              setFingerprintStatus("idle");
-            }, 1500);
-          }, 1000);
-        }, 500);
+              setIsFingerprintMode(false)
+              setFingerprintStatus('idle')
+            }, 1500)
+          }, 1000)
+        }, 500)
       } else {
-        setFingerprintProgress(progress);
+        setFingerprintProgress(progress)
       }
-    }, 150);
-  };
+    }, 150)
+  }
 
   const handleCancelFingerprint = () => {
-    setIsFingerprintMode(false);
-    setFingerprintStatus("idle");
-    setFingerprintProgress(0);
-  };
+    setIsFingerprintMode(false)
+    setFingerprintStatus('idle')
+    setFingerprintProgress(0)
+  }
 
   return (
     <motion.div
@@ -224,27 +189,15 @@ const BiometricConsole = ({
     >
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold">
-            Live Biometric Console
-          </h2>
+          <h2 className="text-lg sm:text-xl font-bold">Live Biometric Console</h2>
           <p className="text-xs sm:text-sm text-indigo-100">
-            {isFaceMode
-              ? "Facial Recognition Active"
-              : isFingerprintMode
-                ? "Fingerprint Scanning"
-                : "ESP32-S3 camera & R307 fingerprint"}
+            {isFaceMode ? 'Facial Recognition Active' : isFingerprintMode ? 'Fingerprint Scanning' : 'ESP32-S3 camera & R307 fingerprint'}
           </p>
         </div>
-        <div
-          className={`rounded-full bg-white/15 p-2 sm:p-3 ${isScanning || isFaceMode || isFingerprintMode ? "animate-pulse" : ""}`}
-        >
-          {isFaceMode ? (
-            <ScanFace className="h-5 w-5 sm:h-6 sm:w-6" />
-          ) : isFingerprintMode ? (
-            <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6" />
-          ) : (
-            <Activity className="h-5 w-5 sm:h-6 sm:w-6" />
-          )}
+        <div className={`rounded-full bg-white/15 p-2 sm:p-3 ${(isScanning || isFaceMode || isFingerprintMode) ? 'animate-pulse' : ''}`}>
+          {isFaceMode ? <ScanFace className="h-5 w-5 sm:h-6 sm:w-6" /> : 
+           isFingerprintMode ? <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6" /> :
+           <Activity className="h-5 w-5 sm:h-6 sm:w-6" />}
         </div>
       </div>
 
@@ -253,7 +206,7 @@ const BiometricConsole = ({
         {isFaceMode && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="mt-4 overflow-hidden"
           >
@@ -269,15 +222,15 @@ const BiometricConsole = ({
                     Retry
                   </button>
                 </div>
-              ) : capturedImage && verificationStatus !== "scanning" ? (
+              ) : capturedImage && verificationStatus !== 'scanning' ? (
                 <div className="relative w-full h-full">
-                  <img
-                    src={capturedImage}
-                    alt="Captured"
+                  <img 
+                    src={capturedImage} 
+                    alt="Captured" 
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60">
-                    {verificationStatus === "verifying" && (
+                    {verificationStatus === 'verifying' && (
                       <div className="text-center">
                         <div className="relative">
                           <Loader2 className="h-12 w-12 text-indigo-300 animate-spin mx-auto" />
@@ -285,13 +238,11 @@ const BiometricConsole = ({
                             <ScanFace className="h-6 w-6 text-white" />
                           </div>
                         </div>
-                        <p className="mt-3 text-sm font-semibold">
-                          Verifying...
-                        </p>
+                        <p className="mt-3 text-sm font-semibold">Verifying...</p>
                       </div>
                     )}
-                    {verificationStatus === "success" && (
-                      <motion.div
+                    {verificationStatus === 'success' && (
+                      <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="text-center"
@@ -299,13 +250,11 @@ const BiometricConsole = ({
                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/30 mx-auto">
                           <CheckCircle2 className="h-10 w-10 text-emerald-400" />
                         </div>
-                        <p className="mt-3 text-base font-semibold text-emerald-400">
-                          Attendance Taken!
-                        </p>
+                        <p className="mt-3 text-base font-semibold text-emerald-400">Attendance Taken!</p>
                       </motion.div>
                     )}
-                    {verificationStatus === "failed" && (
-                      <motion.div
+                    {verificationStatus === 'failed' && (
+                      <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="text-center"
@@ -313,9 +262,7 @@ const BiometricConsole = ({
                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/30 mx-auto">
                           <AlertTriangle className="h-10 w-10 text-rose-400" />
                         </div>
-                        <p className="mt-3 text-base font-semibold text-rose-400">
-                          Verification Failed
-                        </p>
+                        <p className="mt-3 text-base font-semibold text-rose-400">Verification Failed</p>
                       </motion.div>
                     )}
                   </div>
@@ -331,30 +278,24 @@ const BiometricConsole = ({
                     className="w-full h-full object-cover"
                     mirrored
                   />
-
+                  
                   {/* Face guide overlay */}
                   <div className="absolute inset-0 pointer-events-none">
-                    <svg
-                      className="absolute inset-0 w-full h-full"
-                      viewBox="0 0 100 100"
-                      preserveAspectRatio="none"
-                    >
-                      <ellipse
-                        cx="50"
-                        cy="45"
-                        rx="22"
-                        ry="30"
-                        fill="none"
-                        stroke={
-                          faceDetected ? "#10b981" : "rgba(255,255,255,0.5)"
-                        }
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <ellipse 
+                        cx="50" 
+                        cy="45" 
+                        rx="22" 
+                        ry="30" 
+                        fill="none" 
+                        stroke={faceDetected ? '#10b981' : 'rgba(255,255,255,0.5)'} 
                         strokeWidth="0.5"
                         strokeDasharray={faceDetected ? "0" : "2,2"}
                         className="transition-all duration-300"
                       />
                     </svg>
-
-                    {verificationStatus === "detecting" && (
+                    
+                    {verificationStatus === 'detecting' && (
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.3, 0.7, 0.3] }}
@@ -362,29 +303,25 @@ const BiometricConsole = ({
                         className="absolute inset-0 bg-emerald-500/20"
                       />
                     )}
-
+                    
                     {/* Status indicator */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2">
-                      <div
-                        className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${
-                          faceDetected
-                            ? "bg-emerald-500/30 text-emerald-200 border border-emerald-400/40"
-                            : "bg-black/40 text-white/80 border border-white/20"
-                        }`}
-                      >
-                        <div
-                          className={`h-1.5 w-1.5 rounded-full ${faceDetected ? "bg-emerald-400 animate-pulse" : "bg-white/60"}`}
-                        />
-                        {faceDetected ? "Hold Still" : "Scanning..."}
+                      <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${
+                        faceDetected 
+                          ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40' 
+                          : 'bg-black/40 text-white/80 border border-white/20'
+                      }`}>
+                        <div className={`h-1.5 w-1.5 rounded-full ${faceDetected ? 'bg-emerald-400 animate-pulse' : 'bg-white/60'}`} />
+                        {faceDetected ? 'Hold Still' : 'Scanning...'}
                       </div>
                     </div>
 
                     {/* Progress bar */}
-                    {verificationStatus === "scanning" && (
+                    {verificationStatus === 'scanning' && (
                       <div className="absolute bottom-2 left-2 right-2">
                         <div className="h-1 w-full rounded-full bg-black/40 overflow-hidden">
                           <motion.div
-                            className={`h-full rounded-full ${faceDetected ? "bg-emerald-400" : "bg-white/50"}`}
+                            className={`h-full rounded-full ${faceDetected ? 'bg-emerald-400' : 'bg-white/50'}`}
                             initial={{ width: 0 }}
                             animate={{ width: `${detectionProgress}%` }}
                             transition={{ duration: 0.2 }}
@@ -399,7 +336,7 @@ const BiometricConsole = ({
 
             {/* Cancel / Retry buttons */}
             <div className="mt-3 flex gap-2">
-              {verificationStatus === "failed" ? (
+              {verificationStatus === 'failed' ? (
                 <>
                   <button
                     onClick={handleRetry}
@@ -414,7 +351,7 @@ const BiometricConsole = ({
                     Cancel
                   </button>
                 </>
-              ) : verificationStatus === "scanning" ? (
+              ) : verificationStatus === 'scanning' ? (
                 <button
                   onClick={handleCancelFaceVerification}
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold transition hover:bg-white/20"
@@ -433,7 +370,7 @@ const BiometricConsole = ({
         {isFingerprintMode && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="mt-4 overflow-hidden"
           >
@@ -443,7 +380,7 @@ const BiometricConsole = ({
                 {/* Fingerprint icon with scanning effect */}
                 <div className="relative">
                   {/* Outer pulsing ring */}
-                  {fingerprintStatus === "scanning" && (
+                  {fingerprintStatus === 'scanning' && (
                     <>
                       <motion.div
                         className="absolute inset-0 rounded-full border-2 border-indigo-400"
@@ -456,83 +393,58 @@ const BiometricConsole = ({
                         className="absolute inset-0 rounded-full border-2 border-sky-400"
                         initial={{ scale: 1, opacity: 0.6 }}
                         animate={{ scale: 1.8, opacity: 0 }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          delay: 0.5,
-                        }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
                         style={{ width: 80, height: 80, left: -10, top: -10 }}
                       />
                     </>
                   )}
-
+                  
                   {/* Main fingerprint icon */}
                   <motion.div
                     className={`flex h-16 w-16 items-center justify-center rounded-full ${
-                      fingerprintStatus === "success"
-                        ? "bg-emerald-500/30"
-                        : fingerprintStatus === "failed"
-                          ? "bg-rose-500/30"
-                          : "bg-indigo-500/30"
+                      fingerprintStatus === 'success' ? 'bg-emerald-500/30' :
+                      fingerprintStatus === 'failed' ? 'bg-rose-500/30' :
+                      'bg-indigo-500/30'
                     }`}
-                    animate={
-                      fingerprintStatus === "scanning"
-                        ? { scale: [1, 1.1, 1] }
-                        : {}
-                    }
-                    transition={{
-                      duration: 1,
-                      repeat: fingerprintStatus === "scanning" ? Infinity : 0,
-                    }}
+                    animate={fingerprintStatus === 'scanning' ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 1, repeat: fingerprintStatus === 'scanning' ? Infinity : 0 }}
                   >
-                    {fingerprintStatus === "success" ? (
+                    {fingerprintStatus === 'success' ? (
                       <CheckCircle2 className="h-10 w-10 text-emerald-400" />
-                    ) : fingerprintStatus === "failed" ? (
+                    ) : fingerprintStatus === 'failed' ? (
                       <AlertTriangle className="h-10 w-10 text-rose-400" />
-                    ) : fingerprintStatus === "verifying" ? (
+                    ) : fingerprintStatus === 'verifying' ? (
                       <Loader2 className="h-10 w-10 text-indigo-300 animate-spin" />
                     ) : (
-                      <Fingerprint
-                        className={`h-10 w-10 ${fingerprintStatus === "scanning" ? "text-indigo-300" : "text-white/70"}`}
-                      />
+                      <Fingerprint className={`h-10 w-10 ${fingerprintStatus === 'scanning' ? 'text-indigo-300' : 'text-white/70'}`} />
                     )}
                   </motion.div>
                 </div>
 
                 {/* Scanning line animation */}
-                {fingerprintStatus === "scanning" && (
+                {fingerprintStatus === 'scanning' && (
                   <motion.div
                     className="absolute left-1/2 -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent"
-                    initial={{ top: "20%" }}
-                    animate={{ top: ["20%", "80%", "20%"] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
+                    initial={{ top: '20%' }}
+                    animate={{ top: ['20%', '80%', '20%'] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   />
                 )}
 
                 {/* Status text */}
-                <p
-                  className={`mt-4 text-sm font-semibold ${
-                    fingerprintStatus === "success"
-                      ? "text-emerald-400"
-                      : fingerprintStatus === "failed"
-                        ? "text-rose-400"
-                        : "text-white"
-                  }`}
-                >
-                  {fingerprintStatus === "scanning" &&
-                    "Place finger on sensor..."}
-                  {fingerprintStatus === "verifying" && "Verifying..."}
-                  {fingerprintStatus === "success" && "Attendance Taken!"}
-                  {fingerprintStatus === "failed" && "Verification Failed"}
+                <p className={`mt-4 text-sm font-semibold ${
+                  fingerprintStatus === 'success' ? 'text-emerald-400' :
+                  fingerprintStatus === 'failed' ? 'text-rose-400' :
+                  'text-white'
+                }`}>
+                  {fingerprintStatus === 'scanning' && 'Place finger on sensor...'}
+                  {fingerprintStatus === 'verifying' && 'Verifying...'}
+                  {fingerprintStatus === 'success' && 'Attendance Taken!'}
+                  {fingerprintStatus === 'failed' && 'Verification Failed'}
                 </p>
 
                 {/* Progress bar */}
-                {(fingerprintStatus === "scanning" ||
-                  fingerprintStatus === "verifying") && (
+                {(fingerprintStatus === 'scanning' || fingerprintStatus === 'verifying') && (
                   <div className="mt-4 w-48">
                     <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
                       <motion.div
@@ -542,17 +454,14 @@ const BiometricConsole = ({
                         transition={{ duration: 0.2 }}
                       />
                     </div>
-                    <p className="mt-2 text-xs text-indigo-200 text-center">
-                      {Math.round(fingerprintProgress)}%
-                    </p>
+                    <p className="mt-2 text-xs text-indigo-200 text-center">{Math.round(fingerprintProgress)}%</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Cancel button */}
-            {(fingerprintStatus === "scanning" ||
-              fingerprintStatus === "failed") && (
+            {(fingerprintStatus === 'scanning' || fingerprintStatus === 'failed') && (
               <div className="mt-3">
                 <button
                   onClick={handleCancelFingerprint}
@@ -566,7 +475,7 @@ const BiometricConsole = ({
           </motion.div>
         )}
       </AnimatePresence>
-
+      
       {/* Action Buttons - Hide when any mode is active */}
       {!isFaceMode && !isFingerprintMode && (
         <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
@@ -592,27 +501,23 @@ const BiometricConsole = ({
           </motion.button>
         </div>
       )}
-
+      
       {/* System Signal - Hide when any mode is active */}
       {!isFaceMode && !isFingerprintMode && (
         <div className="mt-4 sm:mt-6 rounded-xl border border-white/20 bg-white/10 p-3 sm:p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-indigo-100">
-            System Signal
-          </p>
+          <p className="text-xs font-medium uppercase tracking-wide text-indigo-100">System Signal</p>
           <div className="mt-2 flex items-center gap-2">
             {isScanning && (
               <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
             )}
             <p className="text-xs sm:text-sm font-semibold">
-              {isScanning
-                ? "Scanning biometric sensors..."
-                : lastSignal || "Awaiting first scan"}
+              {isScanning ? 'Scanning biometric sensors...' : lastSignal || 'Awaiting first scan'}
             </p>
           </div>
         </div>
       )}
     </motion.div>
-  );
-};
+  )
+}
 
-export default BiometricConsole;
+export default BiometricConsole
