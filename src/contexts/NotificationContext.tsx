@@ -1,66 +1,54 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, AlertTriangle, Info, X, AlertCircle } from 'lucide-react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { X, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 
-type NotificationType = 'success' | 'error' | 'warning' | 'info'
+type NotificationType = 'success' | 'error' | 'info' | 'warning'
 
-interface Notification {
+type Notification = {
   id: string
   type: NotificationType
   title: string
-  message?: string
+  message: string
 }
 
-interface NotificationContextValue {
-  notify: (type: NotificationType, title: string, message?: string) => void
-  success: (title: string, message?: string) => void
-  error: (title: string, message?: string) => void
-  warning: (title: string, message?: string) => void
-  info: (title: string, message?: string) => void
+type NotificationContextValue = {
+  success: (title: string, message: string) => void
+  error: (title: string, message: string) => void
+  info: (title: string, message: string) => void
+  warning: (title: string, message: string) => void
 }
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined)
 
-export const NotificationProvider = ({ children }: { children: ReactNode }) => {
+export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([])
+
+  const addNotification = useCallback((type: NotificationType, title: string, message: string) => {
+    const id = `notif-${Date.now()}`
+    setNotifications((prev) => [...prev, { id, type, title, message }])
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+    }, 4000)
+  }, [])
 
   const removeNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }, [])
 
-  const notify = useCallback((type: NotificationType, title: string, message?: string) => {
-    const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    setNotifications((prev) => [...prev, { id, type, title, message }])
-    setTimeout(() => removeNotification(id), 5000)
-  }, [removeNotification])
-
-  const success = useCallback((title: string, message?: string) => notify('success', title, message), [notify])
-  const error = useCallback((title: string, message?: string) => notify('error', title, message), [notify])
-  const warning = useCallback((title: string, message?: string) => notify('warning', title, message), [notify])
-  const info = useCallback((title: string, message?: string) => notify('info', title, message), [notify])
-
-  const getIcon = (type: NotificationType) => {
-    switch (type) {
-      case 'success': return <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-      case 'error': return <AlertCircle className="h-5 w-5 text-rose-400" />
-      case 'warning': return <AlertTriangle className="h-5 w-5 text-amber-400" />
-      case 'info': return <Info className="h-5 w-5 text-sky-400" />
-    }
-  }
-
-  const getBorderColor = (type: NotificationType) => {
-    switch (type) {
-      case 'success': return 'border-emerald-500/40'
-      case 'error': return 'border-rose-500/40'
-      case 'warning': return 'border-amber-500/40'
-      case 'info': return 'border-sky-500/40'
-    }
-  }
+  const value = useMemo(
+    () => ({
+      success: (title: string, message: string) => addNotification('success', title, message),
+      error: (title: string, message: string) => addNotification('error', title, message),
+      info: (title: string, message: string) => addNotification('info', title, message),
+      warning: (title: string, message: string) => addNotification('warning', title, message),
+    }),
+    [addNotification],
+  )
 
   return (
-    <NotificationContext.Provider value={{ notify, success, error, warning, info }}>
+    <NotificationContext.Provider value={value}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 max-w-sm w-full">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         <AnimatePresence>
           {notifications.map((notification) => (
             <motion.div
@@ -68,23 +56,30 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
               initial={{ opacity: 0, x: 100, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
-              className={`rounded-xl border ${getBorderColor(notification.type)} bg-white/95 backdrop-blur-sm p-4 shadow-2xl`}
+              className={`flex items-start gap-3 rounded-xl border p-4 shadow-xl backdrop-blur-sm max-w-sm ${
+                notification.type === 'success'
+                  ? 'border-emerald-400/40 bg-emerald-950/90 text-emerald-100'
+                  : notification.type === 'error'
+                    ? 'border-rose-400/40 bg-rose-950/90 text-rose-100'
+                    : notification.type === 'warning'
+                      ? 'border-amber-400/40 bg-amber-950/90 text-amber-100'
+                      : 'border-sky-400/40 bg-sky-950/90 text-sky-100'
+              }`}
             >
-              <div className="flex items-start gap-3">
-                {getIcon(notification.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900">{notification.title}</p>
-                  {notification.message && (
-                    <p className="text-xs text-slate-500 mt-1">{notification.message}</p>
-                  )}
-                </div>
-                <button
-                  onClick={() => removeNotification(notification.id)}
-                  className="text-slate-400 hover:text-slate-600 transition"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+              {notification.type === 'success' && <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />}
+              {notification.type === 'error' && <AlertTriangle className="h-5 w-5 text-rose-400 flex-shrink-0" />}
+              {notification.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0" />}
+              {notification.type === 'info' && <Info className="h-5 w-5 text-sky-400 flex-shrink-0" />}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{notification.title}</p>
+                <p className="text-xs opacity-80 mt-0.5">{notification.message}</p>
               </div>
+              <button
+                onClick={() => removeNotification(notification.id)}
+                className="text-white/60 hover:text-white transition flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </motion.div>
           ))}
         </AnimatePresence>

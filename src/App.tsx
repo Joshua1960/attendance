@@ -10,17 +10,14 @@ import {
   UserPlus,
   FileDown,
   BookOpen,
-  Camera,
-  AlertTriangle,
-  CheckCircle2,
   Sun,
   Moon,
   Clock,
   ClipboardCheck,
   BarChart3,
   Upload,
-  Download,
   X,
+  Camera,
 } from "lucide-react";
 import { BiometricProvider, useBiometric } from "./contexts/BiometricContext";
 import { MasStoreProvider, useMasStore } from "./contexts/MasStoreContext";
@@ -28,20 +25,12 @@ import {
   NotificationProvider,
   useNotification,
 } from "./contexts/NotificationContext";
-import AttendanceTable from "./components/AttendanceTable";
-import BiometricConsole from "./components/BiometricConsole";
-
-import StudentList from "./components/StudentList";
-import AnalyticsChart from "./components/AnalyticsChart";
-import StudentProfileModal from "./components/StudentProfileModal";
-
-import ImportExportModal from "./components/ImportExportModal";
+import BiometricConsole, { type ScanResult, type CameraConfig } from "./components/BiometricConsole";
+import CameraConfigModal from "./components/CameraConfigModal";
 
 import type { Student } from "./contexts/MasStoreContext";
-import Logo from "./assets/ui-logo.png";
 
 type Role = "none" | "super" | "lecturer";
-type ScanMode = "Face" | "Fingerprint";
 type ThemeMode = "dark" | "light";
 
 const Dashboard = ({
@@ -50,17 +39,22 @@ const Dashboard = ({
   theme,
   onToggleTheme,
   activeLecturerId,
+  cameraConfig,
+  onSaveCameraConfig,
+  onOpenCameraSettings,
 }: {
   role: Role;
   onLogout: () => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
   activeLecturerId: string | null;
+  cameraConfig: CameraConfig;
+  onSaveCameraConfig: (config: CameraConfig) => void;
+  onOpenCameraSettings: () => void;
 }) => {
   const { scanFingerprint, isScanning } = useBiometric();
   const {
     students,
-    // admins - available but not currently used
     lecturers,
     logs,
     addStudent,
@@ -79,21 +73,12 @@ const Dashboard = ({
   const { success, error: notifyError, info } = useNotification();
 
   const [internalLecturerId] = useState<string | null>(null);
-  const [scanMode, setScanMode] = useState<ScanMode>("Face");
   const isDark = theme === "dark";
   const headingText = isDark ? "text-white" : "text-slate-900";
   const bodyText = isDark ? "text-slate-300" : "text-slate-600";
   const subtleText = isDark ? "text-slate-400" : "text-slate-500";
 
-  const [lastScan, setLastScan] = useState<
-    | {
-        status: "success" | "error";
-        student?: (typeof students)[number];
-        timestamp: string;
-        message: string;
-      }
-    | undefined
-  >(undefined);
+  const [scanResult, setScanResult] = useState<ScanResult | undefined>(undefined);
   const [registration, setRegistration] = useState({
     name: "",
     matric: "",
@@ -105,9 +90,7 @@ const Dashboard = ({
   });
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [enrolledFingerprint, setEnrolledFingerprint] = useState(false);
-  const [registrationMessage, setRegistrationMessage] = useState<string | null>(
-    null,
-  );
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(null);
   const [lecturerDraft, setLecturerDraft] = useState({
     name: "",
     email: "",
@@ -133,9 +116,7 @@ const Dashboard = ({
   const [, setSessionHistory] = useState<
     { label: string; date: string; start: string; end: string }[]
   >([]);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
-    string | null
-  >(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<
     | {
@@ -145,21 +126,16 @@ const Dashboard = ({
       }
     | undefined
   >(undefined);
-  const [studentModal, setStudentModal] = useState<"active" | "manage" | null>(
-    null,
-  );
+  const [studentModal, setStudentModal] = useState<"active" | "manage" | null>(null);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
   const [addLecturerModalOpen, setAddLecturerModalOpen] = useState(false);
   const [assignLecturerModalOpen, setAssignLecturerModalOpen] = useState(false);
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
-
   const [importExportModalOpen, setImportExportModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-
-  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
-    null,
-  );
+  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(null);
+  const [cameraSettingsOpen, setCameraSettingsOpen] = useState(false);
 
   const resolvedLecturerId = activeLecturerId ?? internalLecturerId;
   const activeLecturer = lecturers.find(
@@ -168,7 +144,7 @@ const Dashboard = ({
 
   const handleFacialVerificationComplete = (
     isSuccess: boolean,
-    capturedImage: string | null,
+    capturedImage: string | null
   ) => {
     setLastCapturedImage(capturedImage);
 
@@ -180,13 +156,14 @@ const Dashboard = ({
         : students;
 
     if (availableStudents.length === 0) {
-      setLastScan({
+      setScanResult({
         status: "error",
         timestamp: new Date().toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
         }),
         message: "No students assigned to this lecturer yet.",
+        capturedImage,
       });
       notifyError("Scan Failed", "No students assigned to this lecturer yet.");
       return;
@@ -200,10 +177,11 @@ const Dashboard = ({
     });
 
     if (!isSuccess) {
-      setLastScan({
+      setScanResult({
         status: "error",
         timestamp,
         message: "Facial verification failed. Face not recognized.",
+        capturedImage,
       });
       notifyError("Verification Failed", "Facial verification failed.");
       return;
@@ -226,11 +204,12 @@ const Dashboard = ({
       signal,
     });
     updateStudentLastSeen(activeStudent.id, timestamp);
-    setLastScan({
+    setScanResult({
       status: "success",
       student: activeStudent,
       timestamp,
       message: `Face ID verified successfully`,
+      capturedImage,
     });
     success(
       "Attendance Taken",
@@ -254,7 +233,7 @@ const Dashboard = ({
         : students;
 
     if (availableStudents.length === 0) {
-      setLastScan({
+      setScanResult({
         status: "error",
         timestamp: new Date().toLocaleTimeString("en-US", {
           hour: "2-digit",
@@ -276,7 +255,7 @@ const Dashboard = ({
 
     if (!isSuccess) {
       setLastCapturedImage(null);
-      setLastScan({
+      setScanResult({
         status: "error",
         timestamp,
         message: "Fingerprint not recognized. Please try again.",
@@ -301,7 +280,7 @@ const Dashboard = ({
       signal: scan.signal,
     });
     updateStudentLastSeen(activeStudent.id, timestamp);
-    setLastScan({
+    setScanResult({
       status: "success",
       student: activeStudent,
       timestamp,
@@ -555,6 +534,14 @@ const Dashboard = ({
     [lecturers],
   );
 
+  // Stats for BiometricConsole
+  const consoleStats = {
+    totalStudents: students.length,
+    activeLecturers: lecturers.filter((l) => l.status === "Active").length,
+    totalScans: role === "super" ? logs.length : lecturerLogs.length,
+    activeSessions: activeSession ? 1 : 0,
+  };
+
   return (
     <div
       className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
@@ -647,450 +634,207 @@ const Dashboard = ({
         </div>
 
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 pb-12">
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-6">
-              {/* Biometric Console Card with Stats */}
+          <div className="space-y-6">
+            {/* Redesigned Biometric Console - All in one card */}
+            <BiometricConsole
+              onFingerprint={() => handleScan("Fingerprint")}
+              onFaceVerificationComplete={handleFacialVerificationComplete}
+              scanResult={scanResult}
+              isScanning={isScanning}
+              stats={consoleStats}
+              cameraConfig={cameraConfig}
+              onOpenCameraSettings={onOpenCameraSettings}
+            />
+
+            {/* Session Control for Lecturers */}
+            {role === "lecturer" && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                className={`rounded-2xl border p-5 ${
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-semibold ${headingText}`}>
+                      Attendance Session
+                    </p>
+                    <p className={`text-xs ${bodyText}`}>
+                      {activeSession
+                        ? `${activeSession.label} • ${activeSession.date} • Started ${activeSession.start}`
+                        : "No active session. Start one to begin tracking."}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {!activeSession && (
+                      <button
+                        onClick={() => setSessionPromptOpen(true)}
+                        className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400"
+                      >
+                        Start Session
+                      </button>
+                    )}
+                    {activeSession && (
+                      <button
+                        onClick={() => setSessionClosePrompt(true)}
+                        className={`flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold transition hover:bg-rose-500/10 ${isDark ? "text-rose-300" : "text-rose-600"}`}
+                      >
+                        <Clock className="h-4 w-4" />
+                        Close Session
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Right Panel for Super Admin */}
+            {role === "super" && (
+              <div
                 className={`rounded-2xl border p-4 sm:p-6 ${
                   isDark
                     ? "border-slate-700 bg-slate-900/50"
                     : "border-slate-200 bg-white"
                 }`}
               >
-                {/* Stats Grid - Now inside the card at the top */}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-                  <div
-                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                <h2 className={`text-lg font-semibold ${headingText}`}>
+                  System Overview
+                </h2>
+                <p className={`mt-2 text-sm ${bodyText}`}>
+                  Manage lecturers, view global analytics, and control system
+                  access.
+                </p>
+                <div className="mt-4 grid gap-3 grid-cols-2">
+                  <button
+                    onClick={() => setAddLecturerModalOpen(true)}
+                    className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </div>
-                    </div>
-                    <p
-                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      {students.length}
-                    </p>
-                    <p
-                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      Total Students
-                    </p>
-                    <p className="text-xs font-medium text-emerald-400 mt-1">
-                      ↑ 12% from last week
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                    <UserPlus className="mb-2 h-5 w-5" />
+                    Add Lecturer
+                  </button>
+                  <button
+                    onClick={() => setAssignLecturerModalOpen(true)}
+                    className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </div>
-                    </div>
-                    <p
-                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      {lecturers.filter((l) => l.status === "Active").length}
-                    </p>
-                    <p
-                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      Active Lecturers
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </div>
-                    </div>
-                    <p
-                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      {role === "super" ? logs.length : lecturerLogs.length}
-                    </p>
-                    <p
-                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      {role === "super" ? "Total Scans" : "Class Scans"}
-                    </p>
-                    <p className="text-xs font-medium text-emerald-400 mt-1">
-                      ↑ 8% from last week
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </div>
-                    </div>
-                    <p
-                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      {activeSession ? "1" : "0"}
-                    </p>
-                    <p
-                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      Active Sessions
-                    </p>
-                  </div>
+                    <Users className="mb-2 h-5 w-5" />
+                    Assign Students
+                  </button>
                 </div>
-
-                {/* Scanning Interface Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h2 className={`text-lg font-semibold ${headingText}`}>
-                      Multimodal Scanning Interface
-                    </h2>
-                    <p className={`text-sm ${bodyText}`}>
-                      Face ID and Fingerprint verification
-                    </p>
-                  </div>
-                  <div
-                    className={`flex rounded-full border p-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 bg-slate-800" : "border-slate-300 bg-slate-100"}`}
-                  >
-                    {(["Face", "Fingerprint"] as ScanMode[]).map((mode) => (
-                      <button
-                        key={mode}
-                        onClick={() => setScanMode(mode)}
-                        className={`rounded-full px-3 py-1.5 transition ${
-                          scanMode === mode
-                            ? "bg-white text-slate-900"
-                            : isDark
-                              ? "text-slate-300"
-                              : "text-slate-600"
-                        }`}
-                      >
-                        {mode === "Face" ? "Face ID" : mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Biometric Console and Scan Result */}
-                <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                  <BiometricConsole
-                    onFingerprint={() => handleScan("Fingerprint")}
-                    onFaceVerificationComplete={
-                      handleFacialVerificationComplete
-                    }
-                  />
-                  <div
-                    className={`rounded-2xl border p-4 ${
-                      isDark
-                        ? "border-slate-700 bg-slate-900/60"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <p
-                      className={`text-xs font-semibold uppercase ${subtleText}`}
+                <div className="mt-6 space-y-3 text-sm max-h-48 sm:max-h-64 overflow-y-auto">
+                  {lecturers.map((lecturer) => (
+                    <div
+                      key={lecturer.id}
+                      className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
                     >
-                      Scan Result
-                    </p>
-                    <div className="mt-3 space-y-3">
-                      {isScanning ? (
-                        <div className="space-y-3 rounded-xl border border-indigo-400/20 bg-white/5 p-4">
-                          <div className="h-4 w-24 animate-pulse rounded-full bg-indigo-300/40" />
-                          <div className="h-3 w-40 animate-pulse rounded-full bg-indigo-300/30" />
-                          <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 animate-pulse rounded-full bg-indigo-300/40" />
-                            <div className="space-y-2">
-                              <div className="h-3 w-32 animate-pulse rounded-full bg-indigo-300/40" />
-                              <div className="h-3 w-20 animate-pulse rounded-full bg-indigo-300/30" />
-                            </div>
-                          </div>
-                        </div>
-                      ) : lastScan ? (
-                        <div
-                          className={`rounded-xl border p-4 ${
-                            lastScan.status === "success"
-                              ? "border-emerald-400/40 bg-emerald-500/10"
-                              : "border-rose-400/50 bg-rose-500/10"
+                      <div>
+                        <p className={`font-semibold ${headingText}`}>
+                          {lecturer.name}
+                        </p>
+                        <p className={`text-xs ${bodyText}`}>
+                          {lecturer.className}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            updateLecturerStatus(
+                              lecturer.id,
+                              lecturer.status === "Active"
+                                ? "Pending"
+                                : "Active",
+                            )
+                          }
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            lecturer.status === "Active"
+                              ? "bg-emerald-900/30 text-emerald-400"
+                              : "bg-amber-500/20 text-amber-300"
                           }`}
                         >
-                          {/* Show captured image if available (from facial verification) */}
-                          {lastCapturedImage && (
-                            <div className="mb-3 overflow-hidden rounded-lg border border-white/20">
-                              <img
-                                src={lastCapturedImage}
-                                alt="Captured face"
-                                className="w-full h-24 object-cover"
-                              />
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-sm font-semibold">
-                            {lastScan.status === "success" ? (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                            ) : (
-                              <AlertTriangle className="h-4 w-4 text-rose-300" />
-                            )}
-                            <span>
-                              {lastScan.status === "success"
-                                ? "Attendance Taken"
-                                : "Verification Failed"}
-                            </span>
-                          </div>
-                          <p
-                            className={`mt-2 text-xs ${isDark ? "text-slate-300" : "text-slate-600"}`}
-                          >
-                            {lastScan.message}
-                          </p>
-                          {lastScan.status === "success" && lastScan.student ? (
-                            <div
-                              className={`mt-3 flex items-center gap-3 rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-slate-50"}`}
-                            >
-                              <img
-                                src={
-                                  lastCapturedImage || lastScan.student.photoUrl
-                                }
-                                alt={lastScan.student.name}
-                                className="h-10 w-10 rounded-full border border-white/20 object-cover"
-                              />
-                              <div>
-                                <p
-                                  className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
-                                >
-                                  {lastScan.student.name}
-                                </p>
-                                <p
-                                  className={`text-xs ${isDark ? "text-slate-300" : "text-slate-500"}`}
-                                >
-                                  {lastScan.student.matricNumber}
-                                </p>
-                              </div>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <p
-                          className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                        >
-                          Run a scan to display the latest result.
-                        </p>
-                      )}
-                      {scanMode === "Fingerprint" && (
-                        <button
-                          onClick={() => handleScan("Fingerprint")}
-                          disabled={isScanning}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70"
-                        >
-                          <Fingerprint className="h-4 w-4" />
-                          Start Fingerprint Scan
+                          {lecturer.status}
                         </button>
-                      )}
-                      {scanMode === "Face" && (
-                        <p
-                          className={`text-xs text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                        <button
+                          onClick={() =>
+                            setConfirmDialog({
+                              type: "lecturer",
+                              id: lecturer.id,
+                              name: lecturer.name,
+                            })
+                          }
+                          className={`rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold ${isDark ? "text-rose-300" : "text-rose-600"}`}
                         >
-                          Click "Face ID" button on the console to start facial
-                          verification
-                        </p>
-                      )}
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ))}
+                  {lecturers.length === 0 && (
+                    <p className={`text-center text-sm ${bodyText}`}>
+                      No lecturers registered yet.
+                    </p>
+                  )}
                 </div>
-              </motion.div>
+              </div>
+            )}
 
-              {/* Session Control for Lecturers */}
-              {role === "lecturer" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`rounded-2xl border p-5 ${
-                    isDark
-                      ? "border-slate-700 bg-slate-900/50"
-                      : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
+            {/* Lecturer Command Center */}
+            {role === "lecturer" && (
+              <div
+                className={`rounded-2xl border p-4 sm:p-6 ${
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <h2 className={`text-lg font-semibold ${headingText}`}>
+                  Lecturer Command Center
+                </h2>
+                <p className={`mt-2 text-sm ${bodyText}`}>
+                  Access attendance records and export reports for your class.
+                </p>
+                <div className="mt-6 space-y-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                    >
+                      <BookOpen className="h-4 w-4" />
+                    </div>
                     <div>
-                      <p className={`text-sm font-semibold ${headingText}`}>
-                        Attendance Session
+                      <p className={`font-semibold ${headingText}`}>
+                        Class Assigned
                       </p>
-                      <p className={`text-xs ${bodyText}`}>
-                        {activeSession
-                          ? `${activeSession.label} • ${activeSession.date} • Started ${activeSession.start}`
-                          : "No active session. Start one to begin tracking."}
+                      <p className={bodyText}>
+                        {activeLecturer?.className ?? "No class assigned"}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      {!activeSession && (
-                        <button
-                          onClick={() => setSessionPromptOpen(true)}
-                          className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400"
-                        >
-                          Start Session
-                        </button>
-                      )}
-                      {activeSession && (
-                        <button
-                          onClick={() => setSessionClosePrompt(true)}
-                          className={`flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold transition hover:bg-rose-500/10 ${isDark ? "text-rose-300" : "text-rose-600"}`}
-                        >
-                          <Clock className="h-4 w-4" />
-                          Close Session
-                        </button>
-                      )}
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                    >
+                      <Database className="h-4 w-4" />
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Right Panel */}
-            <div
-              className={`rounded-2xl border p-4 sm:p-6 ${
-                isDark
-                  ? "border-slate-700 bg-slate-900/50"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              {role === "super" ? (
-                <>
-                  <h2 className={`text-lg font-semibold ${headingText}`}>
-                    System Overview
-                  </h2>
-                  <p className={`mt-2 text-sm ${bodyText}`}>
-                    Manage lecturers, view global analytics, and control system
-                    access.
-                  </p>
-                  <div className="mt-4 grid gap-3 grid-cols-2">
-                    <button
-                      onClick={() => setAddLecturerModalOpen(true)}
-                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
-                    >
-                      <UserPlus className="mb-2 h-5 w-5" />
-                      Add Lecturer
-                    </button>
-                    <button
-                      onClick={() => setAssignLecturerModalOpen(true)}
-                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
-                    >
-                      <Users className="mb-2 h-5 w-5" />
-                      Assign Students
-                    </button>
-                  </div>
-                  <div className="mt-6 space-y-3 text-sm max-h-48 sm:max-h-64 overflow-y-auto">
-                    {lecturers.map((lecturer) => (
-                      <div
-                        key={lecturer.id}
-                        className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
-                      >
-                        <div>
-                          <p className={`font-semibold ${headingText}`}>
-                            {lecturer.name}
-                          </p>
-                          <p className={`text-xs ${bodyText}`}>
-                            {lecturer.className}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() =>
-                              updateLecturerStatus(
-                                lecturer.id,
-                                lecturer.status === "Active"
-                                  ? "Pending"
-                                  : "Active",
-                              )
-                            }
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              lecturer.status === "Active"
-                                ? "bg-emerald-900/30 text-emerald-400"
-                                : "bg-amber-500/20 text-amber-300"
-                            }`}
-                          >
-                            {lecturer.status}
-                          </button>
-                          <button
-                            onClick={() =>
-                              setConfirmDialog({
-                                type: "lecturer",
-                                id: lecturer.id,
-                                name: lecturer.name,
-                              })
-                            }
-                            className={`rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold ${isDark ? "text-rose-300" : "text-rose-600"}`}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {lecturers.length === 0 && (
-                      <p className={`text-center text-sm ${bodyText}`}>
-                        No lecturers registered yet.
+                    <div>
+                      <p className={`font-semibold ${headingText}`}>
+                        Records Captured
                       </p>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 className={`text-lg font-semibold ${headingText}`}>
-                    Lecturer Command Center
-                  </h2>
-                  <p className={`mt-2 text-sm ${bodyText}`}>
-                    Access attendance records and export reports for your class.
-                  </p>
-                  <div className="mt-6 space-y-4 text-sm">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <BookOpen className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className={`font-semibold ${headingText}`}>
-                          Class Assigned
-                        </p>
-                        <p className={bodyText}>
-                          {activeLecturer?.className ?? "No class assigned"}
-                        </p>
-                      </div>
+                      <p className={bodyText}>
+                        {lecturerLogs.length} entries logged.
+                      </p>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
-                      >
-                        <Database className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className={`font-semibold ${headingText}`}>
-                          Records Captured
-                        </p>
-                        <p className={bodyText}>
-                          {lecturerLogs.length} entries logged.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={exportAttendance}
-                      className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${isDark ? "border-slate-600 bg-slate-800 text-white hover:bg-slate-700" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
-                    >
-                      <FileDown className="h-4 w-4" />
-                      Export Attendance CSV
-                    </button>
                   </div>
-                </>
-              )}
-            </div>
+                  <button
+                    onClick={exportAttendance}
+                    className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${isDark ? "border-slate-600 bg-slate-800 text-white hover:bg-slate-700" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
+                  >
+                    <FileDown className="h-4 w-4" />
+                    Export Attendance CSV
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -1442,11 +1186,20 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <AttendanceTable
-                logs={role === "super" ? logs : lecturerLogs}
-                variant="dashboard"
-                onExport={exportAttendance}
-              />
+              <div className="space-y-2">
+                {(role === "super" ? logs : lecturerLogs).map((log) => (
+                  <div key={log.id} className="rounded-xl border border-slate-700 bg-slate-800/50 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{log.studentName}</p>
+                      <p className="text-xs text-slate-400">{log.studentMatricNumber} • {log.className}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-300">{log.timestamp}</p>
+                      <p className="text-xs text-slate-400">{log.method}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -1592,7 +1345,7 @@ const Dashboard = ({
                             className="h-14 w-14 rounded-full"
                           />
                         ) : (
-                          <Camera className="h-6 w-6" />
+                          <UserPlus className="h-6 w-6" />
                         )}
                       </div>
                       <div>
@@ -1727,7 +1480,6 @@ const Dashboard = ({
                   onClick={exportCalendarSessions}
                   className="flex-1 rounded-xl border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-300"
                 >
-                  <Download className="mr-2 inline h-4 w-4" />
                   Export Session
                 </button>
                 <button
@@ -1777,19 +1529,35 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <StudentList
-                students={
-                  role === "lecturer" && activeLecturer
-                    ? students.filter((student) =>
-                        student.lecturerIds.includes(activeLecturer.id),
-                      )
-                    : students
-                }
-                lecturersById={lecturersById}
-                variant="dashboard"
-                onStudentClick={handleStudentClick}
-                showAttendanceRate={getAttendanceRate}
-              />
+              <div className="space-y-2">
+                {(role === "lecturer" && activeLecturer
+                  ? students.filter((student) =>
+                      student.lecturerIds.includes(activeLecturer.id),
+                    )
+                  : students
+                ).map((student) => (
+                  <div
+                    key={student.id}
+                    onClick={() => handleStudentClick(student)}
+                    className="rounded-xl border border-slate-700 bg-slate-800/50 p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-800 transition"
+                  >
+                    <img
+                      src={student.photoUrl}
+                      alt={student.name}
+                      className="h-10 w-10 rounded-full"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-white">{student.name}</p>
+                      <p className="text-xs text-slate-400">{student.matricNumber}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-1 text-xs ${
+                      student.status === 'Active' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-amber-900/30 text-amber-400'
+                    }`}>
+                      {student.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -1995,10 +1763,39 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <AnalyticsChart
-                logs={role === "super" ? logs : lecturerLogs}
-                variant="dashboard"
-              />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+                    <p className="text-xs text-slate-400">Total Scans Today</p>
+                    <p className="text-2xl font-bold text-white mt-1">
+                      {(role === "super" ? logs : lecturerLogs).filter(l => l.sessionDate === new Date().toISOString().slice(0, 10)).length}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+                    <p className="text-xs text-slate-400">Active Students</p>
+                    <p className="text-2xl font-bold text-white mt-1">
+                      {students.filter(s => s.status === 'Active').length}
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+                  <p className="text-sm font-semibold text-white mb-3">Scan Methods</p>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <p className="text-xs text-slate-400">Face ID</p>
+                      <p className="text-lg font-bold text-indigo-400">
+                        {(role === "super" ? logs : lecturerLogs).filter(l => l.method === 'Face').length}
+                      </p>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-slate-400">Fingerprint</p>
+                      <p className="text-lg font-bold text-sky-400">
+                        {(role === "super" ? logs : lecturerLogs).filter(l => l.method === 'Fingerprint').length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -2006,34 +1803,117 @@ const Dashboard = ({
 
       {/* Student Profile Modal */}
       {selectedStudent && (
-        <StudentProfileModal
-          student={selectedStudent}
-          attendanceLogs={getStudentAttendance(selectedStudent.id)}
-          attendanceRate={getAttendanceRate(selectedStudent.id)}
-          lecturersById={lecturersById}
-          onClose={() => setSelectedStudent(null)}
-          variant="dashboard"
-        />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 20 }}
+            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-lg font-semibold text-white">Student Profile</p>
+              <button
+                onClick={() => setSelectedStudent(null)}
+                className="rounded-full p-2 text-slate-400 transition hover:bg-white/10"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex items-center gap-4 mb-4">
+              <img
+                src={selectedStudent.photoUrl}
+                alt={selectedStudent.name}
+                className="h-16 w-16 rounded-full"
+              />
+              <div>
+                <p className="text-lg font-semibold text-white">{selectedStudent.name}</p>
+                <p className="text-sm text-slate-400">{selectedStudent.matricNumber}</p>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Program:</span>
+                <span className="text-white">{selectedStudent.program}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Class:</span>
+                <span className="text-white">{selectedStudent.className}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Status:</span>
+                <span className={selectedStudent.status === 'Active' ? 'text-emerald-400' : 'text-amber-400'}>
+                  {selectedStudent.status}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Last Seen:</span>
+                <span className="text-white">{selectedStudent.lastSeen}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Attendance Rate:</span>
+                <span className="text-indigo-400">{getAttendanceRate(selectedStudent.id)}%</span>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Import/Export Modal */}
-      <ImportExportModal
-        isOpen={importExportModalOpen}
-        onClose={() => setImportExportModalOpen(false)}
-        onImport={(newStudents) => {
-          importStudents(newStudents);
-          success(
-            "Import Complete",
-            `${newStudents.length} students imported.`,
-          );
-        }}
-        students={students}
-        lecturers={lecturers.map((l) => ({
-          id: l.id,
-          name: l.name,
-          className: l.className,
-        }))}
-      />
+      <AnimatePresence>
+        {importExportModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-lg font-semibold text-white">Import/Export Students</p>
+                <button
+                  onClick={() => setImportExportModalOpen(false)}
+                  className="rounded-full p-2 text-slate-400 transition hover:bg-white/10"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+                  <p className="text-sm font-semibold text-white mb-2">Export Students</p>
+                  <p className="text-xs text-slate-400 mb-3">Download all student data as CSV</p>
+                  <button
+                    onClick={() => {
+                      const csv = students.map(s => 
+                        `${s.name},${s.matricNumber},${s.program},${s.className}`
+                      ).join('\n');
+                      const blob = new Blob([`Name,Matric,Program,Class\n${csv}`], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = 'students.csv';
+                      link.click();
+                      success('Exported', 'Student data exported to CSV.');
+                    }}
+                    className="w-full rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -2149,8 +2029,7 @@ const Gateway = ({
               <div
                 className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
               >
-                {/* <Fingerprint className="h-7 w-7" /> */}
-                <img src={Logo} alt="Logo" />
+                <Fingerprint className="h-7 w-7" />
               </div>
               <div>
                 <h1
@@ -2702,7 +2581,7 @@ const Gateway = ({
                         isDark
                           ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
                           : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
-                      }`}
+                        }`}
                     />
                   </div>
                   <div>
@@ -2763,6 +2642,25 @@ function App() {
     window.localStorage.getItem("mas-lecturer-id"),
   );
   const [theme, setTheme] = useState<ThemeMode>("light");
+  
+  // Camera configuration state
+  const [cameraConfig, setCameraConfig] = useState<CameraConfig>(() => {
+    const stored = window.localStorage.getItem("mas-camera-config");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return { type: 'webcam' as const };
+      }
+    }
+    return { type: 'webcam' as const };
+  });
+  
+  // Show camera config modal for first-time users
+  const [showCameraModal, setShowCameraModal] = useState(() => {
+    const hasConfigured = window.localStorage.getItem("mas-camera-configured");
+    return !hasConfigured;
+  });
 
   useEffect(() => {
     if (role === "none") {
@@ -2776,10 +2674,29 @@ function App() {
     }
   }, [role, activeLecturerId]);
 
+  const handleSaveCameraConfig = (config: CameraConfig) => {
+    setCameraConfig(config);
+    window.localStorage.setItem("mas-camera-config", JSON.stringify(config));
+    window.localStorage.setItem("mas-camera-configured", "true");
+    setShowCameraModal(false);
+  };
+
   return (
     <NotificationProvider>
       <BiometricProvider>
         <MasStoreProvider>
+          {/* Camera Configuration Modal - Shows for first-time users */}
+          <CameraConfigModal
+            isOpen={showCameraModal && role !== "none"}
+            onClose={() => {
+              setShowCameraModal(false);
+              window.localStorage.setItem("mas-camera-configured", "true");
+            }}
+            onSave={handleSaveCameraConfig}
+            currentConfig={cameraConfig}
+            isFirstTime={!window.localStorage.getItem("mas-camera-configured")}
+          />
+          
           {role === "none" ? (
             <Gateway
               onAuthenticated={(nextRole, lecturerId) => {
@@ -2799,6 +2716,9 @@ function App() {
                 setTheme(theme === "dark" ? "light" : "dark")
               }
               activeLecturerId={role === "lecturer" ? activeLecturerId : null}
+              cameraConfig={cameraConfig}
+              onSaveCameraConfig={handleSaveCameraConfig}
+              onOpenCameraSettings={() => setShowCameraModal(true)}
             />
           )}
         </MasStoreProvider>

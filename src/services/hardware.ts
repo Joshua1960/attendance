@@ -1,3 +1,5 @@
+// Hardware simulation service for biometric devices
+
 export type FingerprintScanResult = {
   fingerprintId: string
   confidence: number
@@ -8,25 +10,23 @@ export type FaceScanResult = {
   liveness: number
 }
 
-const simulateLatency = (min = 700, max = 1400) =>
-  new Promise<void>((resolve) => {
-    const delay = Math.floor(Math.random() * (max - min + 1)) + min
-    setTimeout(() => resolve(), delay)
-  })
-
+// Simulated hardware service for ESP32-S3 camera and R307 fingerprint sensor
 export const hardwareService = {
-  async scanFingerprint(): Promise<FingerprintScanResult> {
-    await simulateLatency(900, 1600)
+  scanFingerprint: async (): Promise<FingerprintScanResult> => {
+    // Simulate hardware latency
+    await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000))
     return {
       fingerprintId: `fp-${Math.floor(1000 + Math.random() * 9000)}`,
-      confidence: Number((0.92 + Math.random() * 0.06).toFixed(2)),
+      confidence: 0.85 + Math.random() * 0.14,
     }
   },
-  async scanFace(): Promise<FaceScanResult> {
-    await simulateLatency(1100, 1800)
+
+  scanFace: async (): Promise<FaceScanResult> => {
+    // Simulate hardware latency
+    await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 1500))
     return {
       faceId: `face-${Math.floor(1000 + Math.random() * 9000)}`,
-      liveness: Number((0.9 + Math.random() * 0.08).toFixed(2)),
+      liveness: 0.88 + Math.random() * 0.11,
     }
   },
 }
