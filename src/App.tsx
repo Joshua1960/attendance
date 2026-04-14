@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
   Database,
   Fingerprint,
   ShieldCheck,
   Users,
-
   LogOut,
   UserPlus,
   FileDown,
@@ -22,24 +21,28 @@ import {
   Upload,
   Download,
   X,
-} from 'lucide-react'
-import { BiometricProvider, useBiometric } from './contexts/BiometricContext'
-import { MasStoreProvider, useMasStore } from './contexts/MasStoreContext'
-import { NotificationProvider, useNotification } from './contexts/NotificationContext'
-import AttendanceTable from './components/AttendanceTable'
-import BiometricConsole from './components/BiometricConsole'
+} from "lucide-react";
+import { BiometricProvider, useBiometric } from "./contexts/BiometricContext";
+import { MasStoreProvider, useMasStore } from "./contexts/MasStoreContext";
+import {
+  NotificationProvider,
+  useNotification,
+} from "./contexts/NotificationContext";
+import AttendanceTable from "./components/AttendanceTable";
+import BiometricConsole from "./components/BiometricConsole";
 
-import StudentList from './components/StudentList'
-import AnalyticsChart from './components/AnalyticsChart'
-import StudentProfileModal from './components/StudentProfileModal'
+import StudentList from "./components/StudentList";
+import AnalyticsChart from "./components/AnalyticsChart";
+import StudentProfileModal from "./components/StudentProfileModal";
 
-import ImportExportModal from './components/ImportExportModal'
+import ImportExportModal from "./components/ImportExportModal";
 
-import type { Student } from './contexts/MasStoreContext'
+import type { Student } from "./contexts/MasStoreContext";
+import Logo from "./assets/ui-logo.png";
 
-type Role = 'none' | 'super' | 'lecturer'
-type ScanMode = 'Face' | 'Fingerprint'
-type ThemeMode = 'dark' | 'light'
+type Role = "none" | "super" | "lecturer";
+type ScanMode = "Face" | "Fingerprint";
+type ThemeMode = "dark" | "light";
 
 const Dashboard = ({
   role,
@@ -48,13 +51,13 @@ const Dashboard = ({
   onToggleTheme,
   activeLecturerId,
 }: {
-  role: Role
-  onLogout: () => void
-  theme: ThemeMode
-  onToggleTheme: () => void
-  activeLecturerId: string | null
+  role: Role;
+  onLogout: () => void;
+  theme: ThemeMode;
+  onToggleTheme: () => void;
+  activeLecturerId: string | null;
 }) => {
-  const { scanFingerprint, isScanning } = useBiometric()
+  const { scanFingerprint, isScanning } = useBiometric();
   const {
     students,
     // admins - available but not currently used
@@ -72,123 +75,142 @@ const Dashboard = ({
     importStudents,
     getStudentAttendance,
     getAttendanceRate,
-  } = useMasStore()
-  const { success, error: notifyError, info } = useNotification()
-  
-  const [internalLecturerId] = useState<string | null>(null)
-  const [scanMode, setScanMode] = useState<ScanMode>('Face')
-  const isDark = theme === 'dark'
-  const headingText = isDark ? 'text-white' : 'text-slate-900'
-  const bodyText = isDark ? 'text-slate-300' : 'text-slate-600'
-  const subtleText = isDark ? 'text-slate-400' : 'text-slate-500'
-  
+  } = useMasStore();
+  const { success, error: notifyError, info } = useNotification();
+
+  const [internalLecturerId] = useState<string | null>(null);
+  const [scanMode, setScanMode] = useState<ScanMode>("Face");
+  const isDark = theme === "dark";
+  const headingText = isDark ? "text-white" : "text-slate-900";
+  const bodyText = isDark ? "text-slate-300" : "text-slate-600";
+  const subtleText = isDark ? "text-slate-400" : "text-slate-500";
+
   const [lastScan, setLastScan] = useState<
     | {
-        status: 'success' | 'error'
-        student?: (typeof students)[number]
-        timestamp: string
-        message: string
+        status: "success" | "error";
+        student?: (typeof students)[number];
+        timestamp: string;
+        message: string;
       }
     | undefined
-  >(undefined)
+  >(undefined);
   const [registration, setRegistration] = useState({
-    name: '',
-    matric: '',
-    program: '',
-    className: '',
-    lecturerId: '',
-    email: '',
-    phone: '',
-  })
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
-  const [enrolledFingerprint, setEnrolledFingerprint] = useState(false)
-  const [registrationMessage, setRegistrationMessage] = useState<string | null>(null)
+    name: "",
+    matric: "",
+    program: "",
+    className: "",
+    lecturerId: "",
+    email: "",
+    phone: "",
+  });
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [enrolledFingerprint, setEnrolledFingerprint] = useState(false);
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(
+    null,
+  );
   const [lecturerDraft, setLecturerDraft] = useState({
-    name: '',
-    email: '',
-    password: '',
-    className: '',
-  })
+    name: "",
+    email: "",
+    password: "",
+    className: "",
+  });
   const [studentAssignment, setStudentAssignment] = useState({
-    studentId: '',
+    studentId: "",
     lecturerIds: [] as string[],
-  })
-  const [sessionPromptOpen, setSessionPromptOpen] = useState(false)
-  const [sessionClosePrompt, setSessionClosePrompt] = useState(false)
-  const [sessionForm, setSessionForm] = useState({ label: '1st Class' })
+  });
+  const [sessionPromptOpen, setSessionPromptOpen] = useState(false);
+  const [sessionClosePrompt, setSessionClosePrompt] = useState(false);
+  const [sessionForm, setSessionForm] = useState({ label: "1st Class" });
   const [activeSession, setActiveSession] = useState<
     | {
-        label: string
-        date: string
-        start: string
-        end?: string
+        label: string;
+        date: string;
+        start: string;
+        end?: string;
       }
     | undefined
-  >(undefined)
+  >(undefined);
   const [, setSessionHistory] = useState<
     { label: string; date: string; start: string; end: string }[]
-  >([])
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null)
-  const [calendarModalOpen, setCalendarModalOpen] = useState(false)
+  >([]);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
+    string | null
+  >(null);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<
     | {
-        type: 'student' | 'lecturer'
-        id: string
-        name: string
+        type: "student" | "lecturer";
+        id: string;
+        name: string;
       }
     | undefined
-  >(undefined)
-  const [studentModal, setStudentModal] = useState<'active' | 'manage' | null>(null)
-  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false)
-  const [registrationModalOpen, setRegistrationModalOpen] = useState(false)
-  const [addLecturerModalOpen, setAddLecturerModalOpen] = useState(false)
-  const [assignLecturerModalOpen, setAssignLecturerModalOpen] = useState(false)
-  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false)
+  >(undefined);
+  const [studentModal, setStudentModal] = useState<"active" | "manage" | null>(
+    null,
+  );
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
+  const [addLecturerModalOpen, setAddLecturerModalOpen] = useState(false);
+  const [assignLecturerModalOpen, setAssignLecturerModalOpen] = useState(false);
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
 
-  const [importExportModalOpen, setImportExportModalOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [importExportModalOpen, setImportExportModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(null)
+  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
+    null,
+  );
 
-  const resolvedLecturerId = activeLecturerId ?? internalLecturerId
-  const activeLecturer = lecturers.find((lecturer) => lecturer.id === resolvedLecturerId)
+  const resolvedLecturerId = activeLecturerId ?? internalLecturerId;
+  const activeLecturer = lecturers.find(
+    (lecturer) => lecturer.id === resolvedLecturerId,
+  );
 
-  const handleFacialVerificationComplete = (isSuccess: boolean, capturedImage: string | null) => {
-    setLastCapturedImage(capturedImage)
-    
+  const handleFacialVerificationComplete = (
+    isSuccess: boolean,
+    capturedImage: string | null,
+  ) => {
+    setLastCapturedImage(capturedImage);
+
     const availableStudents =
-      role === 'lecturer' && activeLecturer
-        ? students.filter((student) => student.lecturerIds.includes(activeLecturer.id))
-        : students
-        
+      role === "lecturer" && activeLecturer
+        ? students.filter((student) =>
+            student.lecturerIds.includes(activeLecturer.id),
+          )
+        : students;
+
     if (availableStudents.length === 0) {
       setLastScan({
-        status: 'error',
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        message: 'No students assigned to this lecturer yet.',
-      })
-      notifyError('Scan Failed', 'No students assigned to this lecturer yet.')
-      return
+        status: "error",
+        timestamp: new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        message: "No students assigned to this lecturer yet.",
+      });
+      notifyError("Scan Failed", "No students assigned to this lecturer yet.");
+      return;
     }
-    
-    const activeStudent = availableStudents[Math.floor(Math.random() * availableStudents.length)]
-    const timestamp = new Date().toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+
+    const activeStudent =
+      availableStudents[Math.floor(Math.random() * availableStudents.length)];
+    const timestamp = new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     if (!isSuccess) {
       setLastScan({
-        status: 'error',
+        status: "error",
         timestamp,
-        message: 'Facial verification failed. Face not recognized.',
-      })
-      notifyError('Verification Failed', 'Facial verification failed.')
-      return
+        message: "Facial verification failed. Face not recognized.",
+      });
+      notifyError("Verification Failed", "Facial verification failed.");
+      return;
     }
 
-    const signal = `face-${Math.floor(1000 + Math.random() * 9000)} • ${Math.round(92 + Math.random() * 6)}% match`
-    
+    const signal = `face-${Math.floor(1000 + Math.random() * 9000)} • ${Math.round(92 + Math.random() * 6)}% match`;
+
     addLog({
       id: `log-${Date.now()}`,
       studentId: activeStudent.id,
@@ -196,65 +218,74 @@ const Dashboard = ({
       studentMatricNumber: activeStudent.matricNumber,
       classId: activeStudent.classId,
       className: activeStudent.className,
-      sessionLabel: activeSession?.label ?? 'General Session',
+      sessionLabel: activeSession?.label ?? "General Session",
       sessionDate: activeSession?.date ?? new Date().toISOString().slice(0, 10),
       sessionStart: activeSession?.start ?? timestamp,
-      method: 'Face',
+      method: "Face",
       timestamp,
       signal,
-    })
-    updateStudentLastSeen(activeStudent.id, timestamp)
+    });
+    updateStudentLastSeen(activeStudent.id, timestamp);
     setLastScan({
-      status: 'success',
+      status: "success",
       student: activeStudent,
       timestamp,
       message: `Face ID verified successfully`,
-    })
-    success('Attendance Taken', `${activeStudent.name} checked in via Face ID.`)
-  }
+    });
+    success(
+      "Attendance Taken",
+      `${activeStudent.name} checked in via Face ID.`,
+    );
+  };
 
-  const handleScan = async (_method: 'Fingerprint') => {
-    if (role === 'lecturer' && !activeSession) {
-      setSessionPromptOpen(true)
-      return
+  const handleScan = async (_method: "Fingerprint") => {
+    if (role === "lecturer" && !activeSession) {
+      setSessionPromptOpen(true);
+      return;
     }
-    
-    const scan = await scanFingerprint()
-    
+
+    const scan = await scanFingerprint();
+
     const availableStudents =
-      role === 'lecturer' && activeLecturer
-        ? students.filter((student) => student.lecturerIds.includes(activeLecturer.id))
-        : students
-        
+      role === "lecturer" && activeLecturer
+        ? students.filter((student) =>
+            student.lecturerIds.includes(activeLecturer.id),
+          )
+        : students;
+
     if (availableStudents.length === 0) {
       setLastScan({
-        status: 'error',
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        message: 'No students assigned to this lecturer yet.',
-      })
-      notifyError('Scan Failed', 'No students assigned to this lecturer yet.')
-      return
+        status: "error",
+        timestamp: new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        message: "No students assigned to this lecturer yet.",
+      });
+      notifyError("Scan Failed", "No students assigned to this lecturer yet.");
+      return;
     }
-    
-    const activeStudent = availableStudents[Math.floor(Math.random() * availableStudents.length)]
-    const timestamp = new Date().toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    const isSuccess = Math.random() > 0.15
+
+    const activeStudent =
+      availableStudents[Math.floor(Math.random() * availableStudents.length)];
+    const timestamp = new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const isSuccess = Math.random() > 0.15;
 
     if (!isSuccess) {
-      setLastCapturedImage(null)
+      setLastCapturedImage(null);
       setLastScan({
-        status: 'error',
+        status: "error",
         timestamp,
-        message: 'Fingerprint not recognized. Please try again.',
-      })
-      notifyError('Verification Failed', 'Fingerprint not recognized.')
-      return
+        message: "Fingerprint not recognized. Please try again.",
+      });
+      notifyError("Verification Failed", "Fingerprint not recognized.");
+      return;
     }
 
-    setLastCapturedImage(null)
+    setLastCapturedImage(null);
     addLog({
       id: `log-${Date.now()}`,
       studentId: activeStudent.id,
@@ -262,87 +293,126 @@ const Dashboard = ({
       studentMatricNumber: activeStudent.matricNumber,
       classId: activeStudent.classId,
       className: activeStudent.className,
-      sessionLabel: activeSession?.label ?? 'General Session',
+      sessionLabel: activeSession?.label ?? "General Session",
       sessionDate: activeSession?.date ?? new Date().toISOString().slice(0, 10),
       sessionStart: activeSession?.start ?? timestamp,
       method: scan.method,
       timestamp,
       signal: scan.signal,
-    })
-    updateStudentLastSeen(activeStudent.id, timestamp)
+    });
+    updateStudentLastSeen(activeStudent.id, timestamp);
     setLastScan({
-      status: 'success',
+      status: "success",
       student: activeStudent,
       timestamp,
       message: `Fingerprint verified successfully`,
-    })
-    success('Attendance Taken', `${activeStudent.name} checked in via Fingerprint.`)
-  }
+    });
+    success(
+      "Attendance Taken",
+      `${activeStudent.name} checked in via Fingerprint.`,
+    );
+  };
 
   const handleCapturePhoto = () => {
-    const seed = registration.name || registration.matric || 'Student'
-    setCapturedPhoto(`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(seed)}`)
-    setRegistrationMessage('Facial capture complete. Photo saved.')
-    info('Photo Captured', 'Facial photo has been stored.')
-  }
+    const seed = registration.name || registration.matric || "Student";
+    setCapturedPhoto(
+      `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(seed)}`,
+    );
+    setRegistrationMessage("Facial capture complete. Photo saved.");
+    info("Photo Captured", "Facial photo has been stored.");
+  };
 
   const handleEnrollFingerprint = async () => {
-    await scanFingerprint()
-    setEnrolledFingerprint(true)
-    setRegistrationMessage('Fingerprint template enrolled successfully.')
-    info('Fingerprint Enrolled', 'Biometric template saved.')
-  }
+    await scanFingerprint();
+    setEnrolledFingerprint(true);
+    setRegistrationMessage("Fingerprint template enrolled successfully.");
+    info("Fingerprint Enrolled", "Biometric template saved.");
+  };
 
   const handleRegisterStudent = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!registration.name || !registration.matric || !registration.program || !registration.className) {
-      setRegistrationMessage('Please complete all student fields.')
-      notifyError('Registration Failed', 'Please complete all required fields.')
-      return
+    event.preventDefault();
+    if (
+      !registration.name ||
+      !registration.matric ||
+      !registration.program ||
+      !registration.className
+    ) {
+      setRegistrationMessage("Please complete all student fields.");
+      notifyError(
+        "Registration Failed",
+        "Please complete all required fields.",
+      );
+      return;
     }
-    if (role === 'super' && !registration.lecturerId) {
-      setRegistrationMessage('Assign a lecturer before registering the student.')
-      notifyError('Registration Failed', 'Please assign a lecturer.')
-      return
+    if (role === "super" && !registration.lecturerId) {
+      setRegistrationMessage(
+        "Assign a lecturer before registering the student.",
+      );
+      notifyError("Registration Failed", "Please assign a lecturer.");
+      return;
     }
     if (!capturedPhoto || !enrolledFingerprint) {
-      setRegistrationMessage('Capture facial photo and enroll fingerprint to proceed.')
-      notifyError('Registration Failed', 'Complete biometric enrollment first.')
-      return
+      setRegistrationMessage(
+        "Capture facial photo and enroll fingerprint to proceed.",
+      );
+      notifyError(
+        "Registration Failed",
+        "Complete biometric enrollment first.",
+      );
+      return;
     }
     const assignedLecturers =
-      role === 'lecturer' && activeLecturer
+      role === "lecturer" && activeLecturer
         ? [activeLecturer.id]
         : registration.lecturerId
           ? [registration.lecturerId]
-          : []
+          : [];
     addStudent({
       id: `st-${Date.now()}`,
       name: registration.name,
       matricNumber: registration.matric,
       program: registration.program,
-      classId: role === 'lecturer' && activeLecturer ? activeLecturer.classId : `cl-${Math.floor(100 + Math.random() * 900)}`,
-      className: role === 'lecturer' && activeLecturer ? activeLecturer.className : registration.className,
+      classId:
+        role === "lecturer" && activeLecturer
+          ? activeLecturer.classId
+          : `cl-${Math.floor(100 + Math.random() * 900)}`,
+      className:
+        role === "lecturer" && activeLecturer
+          ? activeLecturer.className
+          : registration.className,
       photoUrl: capturedPhoto,
       lecturerIds: assignedLecturers,
-      status: 'Active',
-      lastSeen: 'Just now',
+      status: "Active",
+      lastSeen: "Just now",
       email: registration.email || undefined,
       phone: registration.phone || undefined,
       enrolledDate: new Date().toISOString().slice(0, 10),
-    })
-    setRegistration({ name: '', matric: '', program: '', className: '', lecturerId: '', email: '', phone: '' })
-    setCapturedPhoto(null)
-    setEnrolledFingerprint(false)
-    setRegistrationMessage('Student registered successfully.')
-    success('Student Registered', `${registration.name} has been enrolled.`)
-  }
+    });
+    setRegistration({
+      name: "",
+      matric: "",
+      program: "",
+      className: "",
+      lecturerId: "",
+      email: "",
+      phone: "",
+    });
+    setCapturedPhoto(null);
+    setEnrolledFingerprint(false);
+    setRegistrationMessage("Student registered successfully.");
+    success("Student Registered", `${registration.name} has been enrolled.`);
+  };
 
   const handleAddLecturer = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!lecturerDraft.name || !lecturerDraft.email || !lecturerDraft.password || !lecturerDraft.className) {
-      notifyError('Failed', 'Please complete all lecturer fields.')
-      return
+    event.preventDefault();
+    if (
+      !lecturerDraft.name ||
+      !lecturerDraft.email ||
+      !lecturerDraft.password ||
+      !lecturerDraft.className
+    ) {
+      notifyError("Failed", "Please complete all lecturer fields.");
+      return;
     }
     addLecturer({
       id: `lec-${Date.now()}`,
@@ -351,136 +421,154 @@ const Dashboard = ({
       password: lecturerDraft.password,
       classId: `cl-${Math.floor(100 + Math.random() * 900)}`,
       className: lecturerDraft.className,
-      status: 'Active',
-    })
-    setLecturerDraft({ name: '', email: '', password: '', className: '' })
-    setAddLecturerModalOpen(false)
-    success('Lecturer Added', `${lecturerDraft.name} has been added.`)
-  }
+      status: "Active",
+    });
+    setLecturerDraft({ name: "", email: "", password: "", className: "" });
+    setAddLecturerModalOpen(false);
+    success("Lecturer Added", `${lecturerDraft.name} has been added.`);
+  };
 
   const handleAssignLecturers = () => {
     if (!studentAssignment.studentId) {
-      notifyError('Failed', 'Please select a student.')
-      return
+      notifyError("Failed", "Please select a student.");
+      return;
     }
-    updateStudentLecturers(studentAssignment.studentId, studentAssignment.lecturerIds)
-    success('Assignment Updated', 'Student lecturer assignments updated.')
-  }
+    updateStudentLecturers(
+      studentAssignment.studentId,
+      studentAssignment.lecturerIds,
+    );
+    success("Assignment Updated", "Student lecturer assignments updated.");
+  };
 
   const beginSession = () => {
-    const now = new Date()
-    const date = now.toISOString().slice(0, 10)
-    const start = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    setActiveSession({ label: sessionForm.label, date, start })
-    setSessionPromptOpen(false)
-    success('Session Started', `${sessionForm.label} attendance session is now active.`)
-  }
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10);
+    const start = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    setActiveSession({ label: sessionForm.label, date, start });
+    setSessionPromptOpen(false);
+    success(
+      "Session Started",
+      `${sessionForm.label} attendance session is now active.`,
+    );
+  };
 
   const closeSession = () => {
     if (!activeSession) {
-      setSessionClosePrompt(false)
-      return
+      setSessionClosePrompt(false);
+      return;
     }
-    const end = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    setSessionHistory((prev) => [...prev, { ...activeSession, end }])
-    info('Session Closed', `${activeSession.label} has been closed.`)
-    setActiveSession(undefined)
-    setSessionClosePrompt(false)
-  }
+    const end = new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    setSessionHistory((prev) => [...prev, { ...activeSession, end }]);
+    info("Session Closed", `${activeSession.label} has been closed.`);
+    setActiveSession(undefined);
+    setSessionClosePrompt(false);
+  };
 
   const confirmDelete = () => {
-    if (!confirmDialog) return
-    if (confirmDialog.type === 'student') {
-      deleteStudent(confirmDialog.id)
-      success('Student Deleted', `${confirmDialog.name} has been removed.`)
+    if (!confirmDialog) return;
+    if (confirmDialog.type === "student") {
+      deleteStudent(confirmDialog.id);
+      success("Student Deleted", `${confirmDialog.name} has been removed.`);
     } else {
-      deleteLecturer(confirmDialog.id)
-      success('Lecturer Deleted', `${confirmDialog.name} has been removed.`)
+      deleteLecturer(confirmDialog.id);
+      success("Lecturer Deleted", `${confirmDialog.name} has been removed.`);
     }
-    setConfirmDialog(undefined)
-  }
+    setConfirmDialog(undefined);
+  };
 
   const lecturerLogs = useMemo(
     () => logs.filter((log) => log.classId === activeLecturer?.classId),
     [logs, activeLecturer?.classId],
-  )
+  );
 
-  const calendarLogs = role === 'lecturer' ? lecturerLogs : logs
-  const calendarDates = Array.from(new Set(calendarLogs.map((log) => log.sessionDate))).sort().reverse()
+  const calendarLogs = role === "lecturer" ? lecturerLogs : logs;
+  const calendarDates = Array.from(
+    new Set(calendarLogs.map((log) => log.sessionDate)),
+  )
+    .sort()
+    .reverse();
   const calendarSessions = selectedCalendarDate
     ? calendarLogs.filter((log) => log.sessionDate === selectedCalendarDate)
-    : []
+    : [];
 
   const exportCalendarSessions = () => {
-    if (!selectedCalendarDate) return
+    if (!selectedCalendarDate) return;
     const data = calendarSessions
       .map(
         (log) =>
-          `${log.studentName},${log.studentMatricNumber ?? ''},${log.className},${log.sessionLabel},${log.method},${log.sessionStart}`,
+          `${log.studentName},${log.studentMatricNumber ?? ""},${log.className},${log.sessionLabel},${log.method},${log.sessionStart}`,
       )
-      .join('\n')
-    const csv = `Student,Matric,Class,Session,Method,Start Time\n${data}`
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `session-${selectedCalendarDate}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-    success('Exported', 'Session data exported to CSV.')
-  }
+      .join("\n");
+    const csv = `Student,Matric,Class,Session,Method,Start Time\n${data}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `session-${selectedCalendarDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    success("Exported", "Session data exported to CSV.");
+  };
 
   const deleteCalendarSession = () => {
-    if (!selectedCalendarDate) return
-    deleteLogsByDate(selectedCalendarDate)
-    setSelectedCalendarDate(null)
-    setCalendarModalOpen(false)
-    success('Deleted', 'Session logs have been removed.')
-  }
+    if (!selectedCalendarDate) return;
+    deleteLogsByDate(selectedCalendarDate);
+    setSelectedCalendarDate(null);
+    setCalendarModalOpen(false);
+    success("Deleted", "Session logs have been removed.");
+  };
 
   const exportAttendance = () => {
     const data = lecturerLogs
       .map(
         (log) =>
-          `${log.timestamp},${log.studentName},${log.studentMatricNumber || ''},${log.className},${log.method},${log.signal.replace(',', ' ')}`,
+          `${log.timestamp},${log.studentName},${log.studentMatricNumber || ""},${log.className},${log.method},${log.signal.replace(",", " ")}`,
       )
-      .join('\n')
-    const csv = `Timestamp,Student,Matric,Class,Method,Signal\n${data}`
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'attendance-export.csv')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-    success('Exported', 'Attendance data exported to CSV.')
-  }
+      .join("\n");
+    const csv = `Timestamp,Student,Matric,Class,Method,Signal\n${data}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "attendance-export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    success("Exported", "Attendance data exported to CSV.");
+  };
 
   const handleStudentClick = (student: Student) => {
-    setSelectedStudent(student)
-  }
+    setSelectedStudent(student);
+  };
 
   const lecturersById = useMemo(
     () => Object.fromEntries(lecturers.map((l) => [l.id, l.name])),
-    [lecturers]
-  )
+    [lecturers],
+  );
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div
+      className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
+    >
       <div
         className={
           isDark
-            ? 'bg-gradient-to-br from-gray-950 via-slate-950 to-slate-900'
-            : 'bg-gradient-to-br from-white via-slate-50 to-indigo-50'
+            ? "bg-gradient-to-br from-gray-950 via-slate-950 to-slate-900"
+            : "bg-gradient-to-br from-white via-slate-50 to-indigo-50"
         }
       >
         <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
@@ -488,39 +576,65 @@ const Dashboard = ({
               <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6" />
             </motion.div>
             <div>
-              <h1 className={`text-lg sm:text-xl font-bold md:text-2xl ${headingText}`}>
-                <span className="hidden sm:inline">Multimodal Attendance System</span>
+              <h1
+                className={`text-lg sm:text-xl font-bold md:text-2xl ${headingText}`}
+              >
+                <span className="hidden sm:inline">
+                  Multimodal Attendance System
+                </span>
                 <span className="sm:hidden">M.A.S.</span>
               </h1>
-              <p className={`text-xs ${bodyText} hidden sm:block`}>M.A.S. Dashboard</p>
+              <p className={`text-xs ${bodyText} hidden sm:block`}>
+                M.A.S. Dashboard
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className={`hidden items-center gap-2 text-xs lg:flex ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-              <span className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}>Provider Pattern</span>
-              <span className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}>Hardware Simulation</span>
+            <div
+              className={`hidden items-center gap-2 text-xs lg:flex ${isDark ? "text-slate-400" : "text-slate-500"}`}
+            >
+              <span
+                className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}
+              >
+                Provider Pattern
+              </span>
+              <span
+                className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}
+              >
+                Hardware Simulation
+              </span>
             </div>
             <button
               onClick={onToggleTheme}
               className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition ${isDark ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
             >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'}</span>
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">
+                {isDark ? "Light" : "Dark"}
+              </span>
             </button>
           </div>
         </header>
-        
+
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6 text-sm">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <span className={`rounded-full px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wide ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-700"}`}>
-              {role === 'super' ? 'Super Admin' : 'Lecturer'}
+            <span
+              className={`rounded-full px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wide ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-700"}`}
+            >
+              {role === "super" ? "Super Admin" : "Lecturer"}
             </span>
-            {role === 'lecturer' && activeLecturer ? (
+            {role === "lecturer" && activeLecturer ? (
               <span className={`text-xs ${bodyText} hidden sm:inline`}>
                 {activeLecturer.name} • {activeLecturer.className}
               </span>
             ) : (
-              <span className={`text-xs ${bodyText} hidden sm:inline`}>System Overview & Global Control</span>
+              <span className={`text-xs ${bodyText} hidden sm:inline`}>
+                System Overview & Global Control
+              </span>
             )}
           </div>
           <button
@@ -531,7 +645,7 @@ const Dashboard = ({
             <span className="hidden sm:inline">Sign out</span>
           </button>
         </div>
-        
+
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 pb-12">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
@@ -540,77 +654,131 @@ const Dashboard = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-2xl border p-4 sm:p-6 ${
-                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
                 }`}
               >
                 {/* Stats Grid - Now inside the card at the top */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-                  <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
+                  <div
+                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                  >
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div
+                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
-                    <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <p
+                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
                       {students.length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Students</p>
-                    <p className="text-xs font-medium text-emerald-400 mt-1">↑ 12% from last week</p>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
+                      Total Students
+                    </p>
+                    <p className="text-xs font-medium text-emerald-400 mt-1">
+                      ↑ 12% from last week
+                    </p>
                   </div>
-                  <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
+                  <div
+                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                  >
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div
+                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
-                    <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {lecturers.filter(l => l.status === 'Active').length}
+                    <p
+                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
+                      {lecturers.filter((l) => l.status === "Active").length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Lecturers</p>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
+                      Active Lecturers
+                    </p>
                   </div>
-                  <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
+                  <div
+                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                  >
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div
+                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
-                    <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {role === 'super' ? logs.length : lecturerLogs.length}
+                    <p
+                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
+                      {role === "super" ? logs.length : lecturerLogs.length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{role === 'super' ? 'Total Scans' : 'Class Scans'}</p>
-                    <p className="text-xs font-medium text-emerald-400 mt-1">↑ 8% from last week</p>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
+                      {role === "super" ? "Total Scans" : "Class Scans"}
+                    </p>
+                    <p className="text-xs font-medium text-emerald-400 mt-1">
+                      ↑ 8% from last week
+                    </p>
                   </div>
-                  <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
+                  <div
+                    className={`rounded-xl p-3 sm:p-4 ${isDark ? "bg-slate-950/50" : "bg-slate-50"}`}
+                  >
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div
+                        className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
-                    <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {activeSession ? '1' : '0'}
+                    <p
+                      className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
+                      {activeSession ? "1" : "0"}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Sessions</p>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
+                      Active Sessions
+                    </p>
                   </div>
                 </div>
 
                 {/* Scanning Interface Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>
-                    <h2 className={`text-lg font-semibold ${headingText}`}>Multimodal Scanning Interface</h2>
+                    <h2 className={`text-lg font-semibold ${headingText}`}>
+                      Multimodal Scanning Interface
+                    </h2>
                     <p className={`text-sm ${bodyText}`}>
                       Face ID and Fingerprint verification
                     </p>
                   </div>
-                  <div className={`flex rounded-full border p-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
-                    {(['Face', 'Fingerprint'] as ScanMode[]).map((mode) => (
+                  <div
+                    className={`flex rounded-full border p-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 bg-slate-800" : "border-slate-300 bg-slate-100"}`}
+                  >
+                    {(["Face", "Fingerprint"] as ScanMode[]).map((mode) => (
                       <button
                         key={mode}
                         onClick={() => setScanMode(mode)}
                         className={`rounded-full px-3 py-1.5 transition ${
-                          scanMode === mode ? 'bg-white text-slate-900' : isDark ? 'text-slate-300' : 'text-slate-600'
+                          scanMode === mode
+                            ? "bg-white text-slate-900"
+                            : isDark
+                              ? "text-slate-300"
+                              : "text-slate-600"
                         }`}
                       >
-                        {mode === 'Face' ? 'Face ID' : mode}
+                        {mode === "Face" ? "Face ID" : mode}
                       </button>
                     ))}
                   </div>
@@ -618,16 +786,24 @@ const Dashboard = ({
 
                 {/* Biometric Console and Scan Result */}
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                  <BiometricConsole 
-                    onFingerprint={() => handleScan('Fingerprint')} 
-                    onFaceVerificationComplete={handleFacialVerificationComplete}
+                  <BiometricConsole
+                    onFingerprint={() => handleScan("Fingerprint")}
+                    onFaceVerificationComplete={
+                      handleFacialVerificationComplete
+                    }
                   />
                   <div
                     className={`rounded-2xl border p-4 ${
-                      isDark ? 'border-slate-700 bg-slate-900/60' : 'border-slate-200 bg-white'
+                      isDark
+                        ? "border-slate-700 bg-slate-900/60"
+                        : "border-slate-200 bg-white"
                     }`}
                   >
-                    <p className={`text-xs font-semibold uppercase ${subtleText}`}>Scan Result</p>
+                    <p
+                      className={`text-xs font-semibold uppercase ${subtleText}`}
+                    >
+                      Scan Result
+                    </p>
                     <div className="mt-3 space-y-3">
                       {isScanning ? (
                         <div className="space-y-3 rounded-xl border border-indigo-400/20 bg-white/5 p-4">
@@ -644,9 +820,9 @@ const Dashboard = ({
                       ) : lastScan ? (
                         <div
                           className={`rounded-xl border p-4 ${
-                            lastScan.status === 'success'
-                              ? 'border-emerald-400/40 bg-emerald-500/10'
-                              : 'border-rose-400/50 bg-rose-500/10'
+                            lastScan.status === "success"
+                              ? "border-emerald-400/40 bg-emerald-500/10"
+                              : "border-rose-400/50 bg-rose-500/10"
                           }`}
                         >
                           {/* Show captured image if available (from facial verification) */}
@@ -660,36 +836,58 @@ const Dashboard = ({
                             </div>
                           )}
                           <div className="flex items-center gap-2 text-sm font-semibold">
-                            {lastScan.status === 'success' ? (
+                            {lastScan.status === "success" ? (
                               <CheckCircle2 className="h-4 w-4 text-emerald-300" />
                             ) : (
                               <AlertTriangle className="h-4 w-4 text-rose-300" />
                             )}
                             <span>
-                              {lastScan.status === 'success' ? 'Attendance Taken' : 'Verification Failed'}
+                              {lastScan.status === "success"
+                                ? "Attendance Taken"
+                                : "Verification Failed"}
                             </span>
                           </div>
-                          <p className={`mt-2 text-xs ${isDark ? "text-slate-300" : "text-slate-600"}`}>{lastScan.message}</p>
-                          {lastScan.status === 'success' && lastScan.student ? (
-                            <div className={`mt-3 flex items-center gap-3 rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-slate-50"}`}>
+                          <p
+                            className={`mt-2 text-xs ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                          >
+                            {lastScan.message}
+                          </p>
+                          {lastScan.status === "success" && lastScan.student ? (
+                            <div
+                              className={`mt-3 flex items-center gap-3 rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-slate-50"}`}
+                            >
                               <img
-                                src={lastCapturedImage || lastScan.student.photoUrl}
+                                src={
+                                  lastCapturedImage || lastScan.student.photoUrl
+                                }
                                 alt={lastScan.student.name}
                                 className="h-10 w-10 rounded-full border border-white/20 object-cover"
                               />
                               <div>
-                                <p className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>{lastScan.student.name}</p>
-                                <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-500"}`}>{lastScan.student.matricNumber}</p>
+                                <p
+                                  className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
+                                >
+                                  {lastScan.student.name}
+                                </p>
+                                <p
+                                  className={`text-xs ${isDark ? "text-slate-300" : "text-slate-500"}`}
+                                >
+                                  {lastScan.student.matricNumber}
+                                </p>
                               </div>
                             </div>
                           ) : null}
                         </div>
                       ) : (
-                        <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Run a scan to display the latest result.</p>
+                        <p
+                          className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                        >
+                          Run a scan to display the latest result.
+                        </p>
                       )}
-                      {scanMode === 'Fingerprint' && (
+                      {scanMode === "Fingerprint" && (
                         <button
-                          onClick={() => handleScan('Fingerprint')}
+                          onClick={() => handleScan("Fingerprint")}
                           disabled={isScanning}
                           className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70"
                         >
@@ -697,32 +895,39 @@ const Dashboard = ({
                           Start Fingerprint Scan
                         </button>
                       )}
-                      {scanMode === 'Face' && (
-                        <p className={`text-xs text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                          Click "Face ID" button on the console to start facial verification
+                      {scanMode === "Face" && (
+                        <p
+                          className={`text-xs text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                        >
+                          Click "Face ID" button on the console to start facial
+                          verification
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
               </motion.div>
-              
+
               {/* Session Control for Lecturers */}
-              {role === 'lecturer' && (
+              {role === "lecturer" && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`rounded-2xl border p-5 ${
-                    isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                    isDark
+                      ? "border-slate-700 bg-slate-900/50"
+                      : "border-slate-200 bg-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`text-sm font-semibold ${headingText}`}>Attendance Session</p>
+                      <p className={`text-sm font-semibold ${headingText}`}>
+                        Attendance Session
+                      </p>
                       <p className={`text-xs ${bodyText}`}>
                         {activeSession
                           ? `${activeSession.label} • ${activeSession.date} • Started ${activeSession.start}`
-                          : 'No active session. Start one to begin tracking.'}
+                          : "No active session. Start one to begin tracking."}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -748,18 +953,23 @@ const Dashboard = ({
                 </motion.div>
               )}
             </div>
-            
+
             {/* Right Panel */}
             <div
               className={`rounded-2xl border p-4 sm:p-6 ${
-                isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                isDark
+                  ? "border-slate-700 bg-slate-900/50"
+                  : "border-slate-200 bg-white"
               }`}
             >
-              {role === 'super' ? (
+              {role === "super" ? (
                 <>
-                  <h2 className={`text-lg font-semibold ${headingText}`}>System Overview</h2>
+                  <h2 className={`text-lg font-semibold ${headingText}`}>
+                    System Overview
+                  </h2>
                   <p className={`mt-2 text-sm ${bodyText}`}>
-                    Manage lecturers, view global analytics, and control system access.
+                    Manage lecturers, view global analytics, and control system
+                    access.
                   </p>
                   <div className="mt-4 grid gap-3 grid-cols-2">
                     <button
@@ -784,21 +994,27 @@ const Dashboard = ({
                         className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
                       >
                         <div>
-                          <p className={`font-semibold ${headingText}`}>{lecturer.name}</p>
-                          <p className={`text-xs ${bodyText}`}>{lecturer.className}</p>
+                          <p className={`font-semibold ${headingText}`}>
+                            {lecturer.name}
+                          </p>
+                          <p className={`text-xs ${bodyText}`}>
+                            {lecturer.className}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
                               updateLecturerStatus(
                                 lecturer.id,
-                                lecturer.status === 'Active' ? 'Pending' : 'Active',
+                                lecturer.status === "Active"
+                                  ? "Pending"
+                                  : "Active",
                               )
                             }
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              lecturer.status === 'Active'
-                                ? 'bg-emerald-900/30 text-emerald-400'
-                                : 'bg-amber-500/20 text-amber-300'
+                              lecturer.status === "Active"
+                                ? "bg-emerald-900/30 text-emerald-400"
+                                : "bg-amber-500/20 text-amber-300"
                             }`}
                           >
                             {lecturer.status}
@@ -806,7 +1022,7 @@ const Dashboard = ({
                           <button
                             onClick={() =>
                               setConfirmDialog({
-                                type: 'lecturer',
+                                type: "lecturer",
                                 id: lecturer.id,
                                 name: lecturer.name,
                               })
@@ -819,33 +1035,49 @@ const Dashboard = ({
                       </div>
                     ))}
                     {lecturers.length === 0 && (
-                      <p className={`text-center text-sm ${bodyText}`}>No lecturers registered yet.</p>
+                      <p className={`text-center text-sm ${bodyText}`}>
+                        No lecturers registered yet.
+                      </p>
                     )}
                   </div>
                 </>
               ) : (
                 <>
-                  <h2 className={`text-lg font-semibold ${headingText}`}>Lecturer Command Center</h2>
+                  <h2 className={`text-lg font-semibold ${headingText}`}>
+                    Lecturer Command Center
+                  </h2>
                   <p className={`mt-2 text-sm ${bodyText}`}>
                     Access attendance records and export reports for your class.
                   </p>
                   <div className="mt-6 space-y-4 text-sm">
                     <div className="flex items-start gap-3">
-                      <div className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}>
+                      <div
+                        className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <BookOpen className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className={`font-semibold ${headingText}`}>Class Assigned</p>
-                        <p className={bodyText}>{activeLecturer?.className ?? 'No class assigned'}</p>
+                        <p className={`font-semibold ${headingText}`}>
+                          Class Assigned
+                        </p>
+                        <p className={bodyText}>
+                          {activeLecturer?.className ?? "No class assigned"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}>
+                      <div
+                        className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                      >
                         <Database className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className={`font-semibold ${headingText}`}>Records Captured</p>
-                        <p className={bodyText}>{lecturerLogs.length} entries logged.</p>
+                        <p className={`font-semibold ${headingText}`}>
+                          Records Captured
+                        </p>
+                        <p className={bodyText}>
+                          {lecturerLogs.length} entries logged.
+                        </p>
                       </div>
                     </div>
                     <button
@@ -855,7 +1087,6 @@ const Dashboard = ({
                       <FileDown className="h-4 w-4" />
                       Export Attendance CSV
                     </button>
-
                   </div>
                 </>
               )}
@@ -863,7 +1094,7 @@ const Dashboard = ({
           </div>
         </section>
       </div>
-      
+
       {/* Main Content Area */}
       <main className="mx-auto mt-6 sm:mt-10 w-full max-w-7xl space-y-4 sm:space-y-6 px-4 sm:px-6 pb-16">
         {/* Quick Action Cards */}
@@ -873,63 +1104,99 @@ const Dashboard = ({
             whileTap={{ scale: 0.98 }}
             onClick={() => setAttendanceModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
+              isDark
+                ? "border-slate-700 bg-slate-900/50 hover:border-slate-500"
+                : "border-slate-200 bg-white hover:border-indigo-300"
             }`}
           >
-            <ClipboardCheck className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
-            <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Attendance Logs</h3>
+            <ClipboardCheck
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? "text-slate-300" : "text-indigo-600"}`}
+            />
+            <h3
+              className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}
+            >
+              Attendance Logs
+            </h3>
             <p className={`mt-1 text-xs ${bodyText}`}>
-              {role === 'super' ? logs.length : lecturerLogs.length} entries
+              {role === "super" ? logs.length : lecturerLogs.length} entries
             </p>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => setStudentModal('active')}
+            onClick={() => setStudentModal("active")}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
+              isDark
+                ? "border-slate-700 bg-slate-900/50 hover:border-slate-500"
+                : "border-slate-200 bg-white hover:border-indigo-300"
             }`}
           >
-            <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
-            <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Student Roster</h3>
-            <p className={`mt-1 text-xs ${bodyText}`}>{students.length} students</p>
+            <Users
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? "text-slate-300" : "text-indigo-600"}`}
+            />
+            <h3
+              className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}
+            >
+              Student Roster
+            </h3>
+            <p className={`mt-1 text-xs ${bodyText}`}>
+              {students.length} students
+            </p>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setAnalyticsModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
+              isDark
+                ? "border-slate-700 bg-slate-900/50 hover:border-slate-500"
+                : "border-slate-200 bg-white hover:border-indigo-300"
             }`}
           >
-            <BarChart3 className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
-            <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Analytics</h3>
+            <BarChart3
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? "text-slate-300" : "text-indigo-600"}`}
+            />
+            <h3
+              className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}
+            >
+              Analytics
+            </h3>
             <p className={`mt-1 text-xs ${bodyText}`}>View trends & stats</p>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setRegistrationModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
+              isDark
+                ? "border-slate-700 bg-slate-900/50 hover:border-slate-500"
+                : "border-slate-200 bg-white hover:border-indigo-300"
             }`}
           >
-            <UserPlus className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
-            <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Register Student</h3>
+            <UserPlus
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? "text-slate-300" : "text-indigo-600"}`}
+            />
+            <h3
+              className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}
+            >
+              Register Student
+            </h3>
             <p className={`mt-1 text-xs ${bodyText}`}>Enroll new student</p>
           </motion.button>
         </div>
 
         {/* Bulk Operations */}
-        {role === 'super' && (
+        {role === "super" && (
           <div className="flex gap-3">
             <button
               onClick={() => setImportExportModalOpen(true)}
               className={`flex items-center gap-2 rounded-xl border px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition ${
-                isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
+                isDark
+                  ? "border-slate-600 text-slate-300 hover:bg-slate-800"
+                  : "border-indigo-200 text-indigo-700 hover:bg-indigo-50"
               }`}
             >
               <Upload className="h-4 w-4" />
@@ -938,21 +1205,29 @@ const Dashboard = ({
             </button>
           </div>
         )}
-        
+
         {/* Session Calendar */}
         <div
           className={`rounded-xl sm:rounded-2xl border p-4 sm:p-6 ${
-            isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+            isDark
+              ? "border-slate-700 bg-slate-900/50"
+              : "border-slate-200 bg-white"
           }`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
             <div>
-              <h3 className={`text-base sm:text-lg font-semibold ${headingText}`}>Session Calendar</h3>
+              <h3
+                className={`text-base sm:text-lg font-semibold ${headingText}`}
+              >
+                Session Calendar
+              </h3>
               <p className={`text-xs sm:text-sm ${bodyText}`}>
                 Click a date to view sessions and exports.
               </p>
             </div>
-            <span className={`rounded-full border px-3 py-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 text-slate-300" : "border-slate-300 text-slate-600"}`}>
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 text-slate-300" : "border-slate-300 text-slate-600"}`}
+            >
               {calendarDates.length} active days
             </span>
           </div>
@@ -962,37 +1237,51 @@ const Dashboard = ({
                 key={date}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => {
-                  setSelectedCalendarDate(date)
-                  setCalendarModalOpen(true)
+                  setSelectedCalendarDate(date);
+                  setCalendarModalOpen(true);
                 }}
                 className={`rounded-xl border px-3 sm:px-4 py-3 sm:py-4 text-left text-sm transition ${
-                  isDark ? 'border-slate-700 bg-slate-900/30 hover:bg-slate-800/50' : 'border-slate-200 bg-slate-50 hover:bg-indigo-50'
+                  isDark
+                    ? "border-slate-700 bg-slate-900/30 hover:bg-slate-800/50"
+                    : "border-slate-200 bg-slate-50 hover:bg-indigo-50"
                 }`}
               >
                 <p className={`text-xs ${subtleText}`}>Session Date</p>
-                <p className={`mt-1 sm:mt-2 text-sm sm:text-base font-semibold ${headingText}`}>{date}</p>
+                <p
+                  className={`mt-1 sm:mt-2 text-sm sm:text-base font-semibold ${headingText}`}
+                >
+                  {date}
+                </p>
                 <p className={`mt-1 sm:mt-2 text-xs ${bodyText}`}>
-                  {calendarLogs.filter((log) => log.sessionDate === date).length} records
+                  {
+                    calendarLogs.filter((log) => log.sessionDate === date)
+                      .length
+                  }{" "}
+                  records
                 </p>
               </motion.button>
             ))}
             {calendarDates.length === 0 && (
-              <div className={`rounded-xl border p-4 sm:p-6 text-center col-span-full ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+              <div
+                className={`rounded-xl border p-4 sm:p-6 text-center col-span-full ${isDark ? "border-slate-700" : "border-slate-200"}`}
+              >
                 <p className={`text-sm ${bodyText}`}>No sessions logged yet.</p>
               </div>
             )}
           </div>
         </div>
       </main>
-      
-      <footer className={`mx-auto w-full max-w-7xl px-4 sm:px-6 pb-10 text-center text-xs ${bodyText}`}>
+
+      <footer
+        className={`mx-auto w-full max-w-7xl px-4 sm:px-6 pb-10 text-center text-xs ${bodyText}`}
+      >
         Designed and Developed by Joshua Joel and Adeyemi Favour
       </footer>
 
       {/* Modals */}
       {/* Session Start Modal */}
       <AnimatePresence>
-        {sessionPromptOpen && role === 'lecturer' && (
+        {sessionPromptOpen && role === "lecturer" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1017,11 +1306,15 @@ const Dashboard = ({
                   Close
                 </button>
               </div>
-              <p className="mt-2 text-sm text-slate-300">Enter class session and begin attendance.</p>
+              <p className="mt-2 text-sm text-slate-300">
+                Enter class session and begin attendance.
+              </p>
               <div className="mt-4 space-y-3">
                 <input
                   value={sessionForm.label}
-                  onChange={(event) => setSessionForm({ label: event.target.value })}
+                  onChange={(event) =>
+                    setSessionForm({ label: event.target.value })
+                  }
                   placeholder="e.g. 1st Class"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
@@ -1039,7 +1332,7 @@ const Dashboard = ({
 
       {/* Session Close Modal */}
       <AnimatePresence>
-        {sessionClosePrompt && role === 'lecturer' && (
+        {sessionClosePrompt && role === "lecturer" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1065,7 +1358,8 @@ const Dashboard = ({
                 </button>
               </div>
               <p className="mt-2 text-sm text-slate-300">
-                End this session and finalize attendance logs for {activeSession?.label}.
+                End this session and finalize attendance logs for{" "}
+                {activeSession?.label}.
               </p>
               <button
                 onClick={closeSession}
@@ -1095,7 +1389,8 @@ const Dashboard = ({
             >
               <p className="text-lg font-semibold text-white">Confirm Delete</p>
               <p className="mt-2 text-sm text-slate-300">
-                Are you sure you want to delete {confirmDialog.name}? This action cannot be undone.
+                Are you sure you want to delete {confirmDialog.name}? This
+                action cannot be undone.
               </p>
               <div className="mt-5 flex gap-3">
                 <button
@@ -1133,8 +1428,12 @@ const Dashboard = ({
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-lg font-semibold text-white">Attendance Logs</p>
-                  <p className="text-xs text-slate-300">Session-based attendance records.</p>
+                  <p className="text-lg font-semibold text-white">
+                    Attendance Logs
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    Session-based attendance records.
+                  </p>
                 </div>
                 <button
                   onClick={() => setAttendanceModalOpen(false)}
@@ -1143,8 +1442,8 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <AttendanceTable 
-                logs={role === 'super' ? logs : lecturerLogs} 
+              <AttendanceTable
+                logs={role === "super" ? logs : lecturerLogs}
                 variant="dashboard"
                 onExport={exportAttendance}
               />
@@ -1170,8 +1469,12 @@ const Dashboard = ({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-white">Student Registration</p>
-                  <p className="text-xs text-slate-300">Capture details and enroll biometrics.</p>
+                  <p className="text-lg font-semibold text-white">
+                    Student Registration
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    Capture details and enroll biometrics.
+                  </p>
                 </div>
                 <button
                   onClick={() => setRegistrationModalOpen(false)}
@@ -1180,56 +1483,94 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <form onSubmit={handleRegisterStudent} className="mt-6 grid gap-4 md:grid-cols-2">
+              <form
+                onSubmit={handleRegisterStudent}
+                className="mt-6 grid gap-4 md:grid-cols-2"
+              >
                 <input
                   value={registration.name}
-                  onChange={(event) => setRegistration({ ...registration, name: event.target.value })}
+                  onChange={(event) =>
+                    setRegistration({
+                      ...registration,
+                      name: event.target.value,
+                    })
+                  }
                   placeholder="Full Name *"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.matric}
-                  onChange={(event) => setRegistration({ ...registration, matric: event.target.value })}
+                  onChange={(event) =>
+                    setRegistration({
+                      ...registration,
+                      matric: event.target.value,
+                    })
+                  }
                   placeholder="Matric Number *"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.program}
-                  onChange={(event) => setRegistration({ ...registration, program: event.target.value })}
+                  onChange={(event) =>
+                    setRegistration({
+                      ...registration,
+                      program: event.target.value,
+                    })
+                  }
                   placeholder="Program *"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
-                {role === 'lecturer' ? (
+                {role === "lecturer" ? (
                   <input
-                    value={activeLecturer?.className ?? ''}
+                    value={activeLecturer?.className ?? ""}
                     disabled
                     className="w-full rounded-xl border border-indigo-400/30 bg-slate-900/40 px-4 py-3 text-sm text-white/70 outline-none"
                   />
                 ) : (
                   <input
                     value={registration.className}
-                    onChange={(event) => setRegistration({ ...registration, className: event.target.value })}
+                    onChange={(event) =>
+                      setRegistration({
+                        ...registration,
+                        className: event.target.value,
+                      })
+                    }
                     placeholder="Class *"
                     className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                   />
                 )}
                 <input
                   value={registration.email}
-                  onChange={(event) => setRegistration({ ...registration, email: event.target.value })}
+                  onChange={(event) =>
+                    setRegistration({
+                      ...registration,
+                      email: event.target.value,
+                    })
+                  }
                   placeholder="Email (optional)"
                   type="email"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.phone}
-                  onChange={(event) => setRegistration({ ...registration, phone: event.target.value })}
+                  onChange={(event) =>
+                    setRegistration({
+                      ...registration,
+                      phone: event.target.value,
+                    })
+                  }
                   placeholder="Phone (optional)"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
-                {role === 'super' && (
+                {role === "super" && (
                   <select
                     value={registration.lecturerId}
-                    onChange={(event) => setRegistration({ ...registration, lecturerId: event.target.value })}
+                    onChange={(event) =>
+                      setRegistration({
+                        ...registration,
+                        lecturerId: event.target.value,
+                      })
+                    }
                     className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300 md:col-span-2"
                   >
                     <option value="">Assign Lecturer *</option>
@@ -1245,15 +1586,23 @@ const Dashboard = ({
                     <div className="flex items-center gap-3">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-400">
                         {capturedPhoto ? (
-                          <img src={capturedPhoto} alt="Student" className="h-14 w-14 rounded-full" />
+                          <img
+                            src={capturedPhoto}
+                            alt="Student"
+                            className="h-14 w-14 rounded-full"
+                          />
                         ) : (
                           <Camera className="h-6 w-6" />
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white">Facial Capture</p>
+                        <p className="text-sm font-semibold text-white">
+                          Facial Capture
+                        </p>
                         <p className="text-xs text-slate-300">
-                          {capturedPhoto ? 'Photo stored for verification.' : 'Use device camera to capture.'}
+                          {capturedPhoto
+                            ? "Photo stored for verification."
+                            : "Use device camera to capture."}
                         </p>
                       </div>
                     </div>
@@ -1267,13 +1616,19 @@ const Dashboard = ({
                   </div>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-14 w-14 items-center justify-center rounded-full border border-slate-600 ${enrolledFingerprint ? 'bg-emerald-900/30 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+                      <div
+                        className={`flex h-14 w-14 items-center justify-center rounded-full border border-slate-600 ${enrolledFingerprint ? "bg-emerald-900/30 text-emerald-400" : "bg-slate-800 text-slate-400"}`}
+                      >
                         <Fingerprint className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white">Fingerprint Enrollment</p>
+                        <p className="text-sm font-semibold text-white">
+                          Fingerprint Enrollment
+                        </p>
                         <p className="text-xs text-slate-300">
-                          {enrolledFingerprint ? 'Fingerprint enrolled.' : 'Scan fingerprint to enroll.'}
+                          {enrolledFingerprint
+                            ? "Fingerprint enrolled."
+                            : "Scan fingerprint to enroll."}
                         </p>
                       </div>
                     </div>
@@ -1294,7 +1649,9 @@ const Dashboard = ({
                     Register Student Profile
                   </button>
                   {registrationMessage && (
-                    <p className="text-xs text-slate-300 text-center">{registrationMessage}</p>
+                    <p className="text-xs text-slate-300 text-center">
+                      {registrationMessage}
+                    </p>
                   )}
                 </div>
               </form>
@@ -1320,8 +1677,12 @@ const Dashboard = ({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-white">Sessions on {selectedCalendarDate}</p>
-                  <p className="text-xs text-slate-300">{calendarSessions.length} students present</p>
+                  <p className="text-lg font-semibold text-white">
+                    Sessions on {selectedCalendarDate}
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    {calendarSessions.length} students present
+                  </p>
                 </div>
                 <button
                   onClick={() => setCalendarModalOpen(false)}
@@ -1337,17 +1698,28 @@ const Dashboard = ({
                     className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-white">{session.studentName}</p>
-                      <p className="text-xs text-slate-300">{session.studentMatricNumber ?? 'N/A'} • {session.sessionLabel}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {session.studentName}
+                      </p>
+                      <p className="text-xs text-slate-300">
+                        {session.studentMatricNumber ?? "N/A"} •{" "}
+                        {session.sessionLabel}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-slate-300">{session.className}</p>
-                      <p className="text-xs text-slate-400">{session.sessionStart}</p>
+                      <p className="text-xs text-slate-300">
+                        {session.className}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {session.sessionStart}
+                      </p>
                     </div>
                   </div>
                 ))}
                 {calendarSessions.length === 0 && (
-                  <p className="text-sm text-slate-300 text-center py-4">No sessions available for this date.</p>
+                  <p className="text-sm text-slate-300 text-center py-4">
+                    No sessions available for this date.
+                  </p>
                 )}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -1388,10 +1760,14 @@ const Dashboard = ({
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-lg font-semibold text-white">
-                    {studentModal === 'active' ? 'Student Roster' : 'Manage Students'}
+                    {studentModal === "active"
+                      ? "Student Roster"
+                      : "Manage Students"}
                   </p>
                   <p className="text-xs text-slate-300">
-                    {studentModal === 'active' ? 'Click a student to view their profile.' : 'Remove or update student access.'}
+                    {studentModal === "active"
+                      ? "Click a student to view their profile."
+                      : "Remove or update student access."}
                   </p>
                 </div>
                 <button
@@ -1403,8 +1779,10 @@ const Dashboard = ({
               </div>
               <StudentList
                 students={
-                  role === 'lecturer' && activeLecturer
-                    ? students.filter((student) => student.lecturerIds.includes(activeLecturer.id))
+                  role === "lecturer" && activeLecturer
+                    ? students.filter((student) =>
+                        student.lecturerIds.includes(activeLecturer.id),
+                      )
                     : students
                 }
                 lecturersById={lecturersById}
@@ -1444,25 +1822,45 @@ const Dashboard = ({
               <form onSubmit={handleAddLecturer} className="mt-4 space-y-3">
                 <input
                   value={lecturerDraft.name}
-                  onChange={(event) => setLecturerDraft({ ...lecturerDraft, name: event.target.value })}
+                  onChange={(event) =>
+                    setLecturerDraft({
+                      ...lecturerDraft,
+                      name: event.target.value,
+                    })
+                  }
                   placeholder="Lecturer Name"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.email}
-                  onChange={(event) => setLecturerDraft({ ...lecturerDraft, email: event.target.value })}
+                  onChange={(event) =>
+                    setLecturerDraft({
+                      ...lecturerDraft,
+                      email: event.target.value,
+                    })
+                  }
                   placeholder="Email"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.className}
-                  onChange={(event) => setLecturerDraft({ ...lecturerDraft, className: event.target.value })}
+                  onChange={(event) =>
+                    setLecturerDraft({
+                      ...lecturerDraft,
+                      className: event.target.value,
+                    })
+                  }
                   placeholder="Class"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.password}
-                  onChange={(event) => setLecturerDraft({ ...lecturerDraft, password: event.target.value })}
+                  onChange={(event) =>
+                    setLecturerDraft({
+                      ...lecturerDraft,
+                      password: event.target.value,
+                    })
+                  }
                   placeholder="Password"
                   type="password"
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
@@ -1495,7 +1893,9 @@ const Dashboard = ({
               className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
-                <p className="text-lg font-semibold text-white">Assign Students to Lecturers</p>
+                <p className="text-lg font-semibold text-white">
+                  Assign Students to Lecturers
+                </p>
                 <button
                   onClick={() => setAssignLecturerModalOpen(false)}
                   className="rounded-full p-2 text-slate-400 transition hover:bg-white/10"
@@ -1507,7 +1907,10 @@ const Dashboard = ({
                 <select
                   value={studentAssignment.studentId}
                   onChange={(event) =>
-                    setStudentAssignment({ ...studentAssignment, studentId: event.target.value })
+                    setStudentAssignment({
+                      ...studentAssignment,
+                      studentId: event.target.value,
+                    })
                   }
                   className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 >
@@ -1520,7 +1923,9 @@ const Dashboard = ({
                 </select>
                 <div className="flex flex-wrap gap-2">
                   {lecturers.map((lecturer) => {
-                    const isSelected = studentAssignment.lecturerIds.includes(lecturer.id)
+                    const isSelected = studentAssignment.lecturerIds.includes(
+                      lecturer.id,
+                    );
                     return (
                       <button
                         key={lecturer.id}
@@ -1529,19 +1934,21 @@ const Dashboard = ({
                           setStudentAssignment((prev) => ({
                             ...prev,
                             lecturerIds: isSelected
-                              ? prev.lecturerIds.filter((id) => id !== lecturer.id)
+                              ? prev.lecturerIds.filter(
+                                  (id) => id !== lecturer.id,
+                                )
                               : [...prev.lecturerIds, lecturer.id],
                           }))
                         }
                         className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                           isSelected
-                            ? 'bg-indigo-500 text-white'
-                            : 'border border-slate-600 text-slate-300 hover:bg-slate-800'
+                            ? "bg-indigo-500 text-white"
+                            : "border border-slate-600 text-slate-300 hover:bg-slate-800"
                         }`}
                       >
                         {lecturer.name}
                       </button>
-                    )
+                    );
                   })}
                 </div>
                 <button
@@ -1574,8 +1981,12 @@ const Dashboard = ({
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-lg font-semibold text-white">Analytics Dashboard</p>
-                  <p className="text-xs text-slate-300">Attendance trends and statistics</p>
+                  <p className="text-lg font-semibold text-white">
+                    Analytics Dashboard
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    Attendance trends and statistics
+                  </p>
                 </div>
                 <button
                   onClick={() => setAnalyticsModalOpen(false)}
@@ -1584,7 +1995,10 @@ const Dashboard = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <AnalyticsChart logs={role === 'super' ? logs : lecturerLogs} variant="dashboard" />
+              <AnalyticsChart
+                logs={role === "super" ? logs : lecturerLogs}
+                variant="dashboard"
+              />
             </motion.div>
           </motion.div>
         )}
@@ -1607,52 +2021,74 @@ const Dashboard = ({
         isOpen={importExportModalOpen}
         onClose={() => setImportExportModalOpen(false)}
         onImport={(newStudents) => {
-          importStudents(newStudents)
-          success('Import Complete', `${newStudents.length} students imported.`)
+          importStudents(newStudents);
+          success(
+            "Import Complete",
+            `${newStudents.length} students imported.`,
+          );
         }}
         students={students}
-        lecturers={lecturers.map((l) => ({ id: l.id, name: l.name, className: l.className }))}
+        lecturers={lecturers.map((l) => ({
+          id: l.id,
+          name: l.name,
+          className: l.className,
+        }))}
       />
-
     </div>
-  )
-}
+  );
+};
 
-type LoginView = 'select' | 'admin' | 'lecturer' | 'lecturer-signup'
+type LoginView = "select" | "admin" | "lecturer" | "lecturer-signup";
 
 const Gateway = ({
   onAuthenticated,
 }: {
-  onAuthenticated: (role: Role, lecturerId?: string) => void
+  onAuthenticated: (role: Role, lecturerId?: string) => void;
 }) => {
-  const { lecturers, addLecturer } = useMasStore()
-  const { success, error: notifyError, info } = useNotification()
-  const [theme, setTheme] = useState<ThemeMode>('light')
-  const isDark = theme === 'dark'
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [credentials, setCredentials] = useState({ username: '', password: '' })
-  const [lecturerForm, setLecturerForm] = useState({ name: '', email: '', password: '', className: '' })
-  const [lecturerLogin, setLecturerLogin] = useState({ email: '', password: '' })
-  const [loginView, setLoginView] = useState<LoginView>('select')
+  const { lecturers, addLecturer } = useMasStore();
+  const { success, error: notifyError, info } = useNotification();
+  const [theme, setTheme] = useState<ThemeMode>("light");
+  const isDark = theme === "dark";
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: "",
+  });
+  const [lecturerForm, setLecturerForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    className: "",
+  });
+  const [lecturerLogin, setLecturerLogin] = useState({
+    email: "",
+    password: "",
+  });
+  const [loginView, setLoginView] = useState<LoginView>("select");
 
   const handleSuperLogin = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (credentials.username === 'admin' && credentials.password === 'admin') {
-      onAuthenticated('super')
-      setAuthError(null)
-      success('Welcome', 'Logged in as Super Admin.')
+    event.preventDefault();
+    if (credentials.username === "admin" && credentials.password === "admin") {
+      onAuthenticated("super");
+      setAuthError(null);
+      success("Welcome", "Logged in as Super Admin.");
     } else {
-      setAuthError('Invalid super admin credentials.')
-      notifyError('Login Failed', 'Invalid credentials.')
+      setAuthError("Invalid super admin credentials.");
+      notifyError("Login Failed", "Invalid credentials.");
     }
-  }
+  };
 
   const handleLecturerSignup = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!lecturerForm.name || !lecturerForm.email || !lecturerForm.password || !lecturerForm.className) {
-      setAuthError('Complete all lecturer sign-up fields.')
-      notifyError('Registration Failed', 'Please fill all fields.')
-      return
+    event.preventDefault();
+    if (
+      !lecturerForm.name ||
+      !lecturerForm.email ||
+      !lecturerForm.password ||
+      !lecturerForm.className
+    ) {
+      setAuthError("Complete all lecturer sign-up fields.");
+      notifyError("Registration Failed", "Please fill all fields.");
+      return;
     }
     addLecturer({
       id: `lec-${Date.now()}`,
@@ -1661,85 +2097,104 @@ const Gateway = ({
       password: lecturerForm.password,
       classId: `cl-${Math.floor(100 + Math.random() * 900)}`,
       className: lecturerForm.className,
-      status: 'Pending',
-    })
-    setAuthError('Lecturer registered. Awaiting admin approval.')
-    info('Registration Submitted', 'Your account is pending approval.')
-    setLecturerForm({ name: '', email: '', password: '', className: '' })
-    setLoginView('lecturer')
-  }
+      status: "Pending",
+    });
+    setAuthError("Lecturer registered. Awaiting admin approval.");
+    info("Registration Submitted", "Your account is pending approval.");
+    setLecturerForm({ name: "", email: "", password: "", className: "" });
+    setLoginView("lecturer");
+  };
 
   const handleLecturerLogin = (event: React.FormEvent) => {
-    event.preventDefault()
+    event.preventDefault();
     const lecturer = lecturers.find(
-      (item) => item.email === lecturerLogin.email && item.password === lecturerLogin.password,
-    )
+      (item) =>
+        item.email === lecturerLogin.email &&
+        item.password === lecturerLogin.password,
+    );
     if (!lecturer) {
-      setAuthError('Lecturer credentials not found.')
-      notifyError('Login Failed', 'Invalid credentials.')
-      return
+      setAuthError("Lecturer credentials not found.");
+      notifyError("Login Failed", "Invalid credentials.");
+      return;
     }
-    if (lecturer.status !== 'Active') {
-      setAuthError('Lecturer account is pending activation.')
-      notifyError('Access Denied', 'Account pending approval.')
-      return
+    if (lecturer.status !== "Active") {
+      setAuthError("Lecturer account is pending activation.");
+      notifyError("Access Denied", "Account pending approval.");
+      return;
     }
-    onAuthenticated('lecturer', lecturer.id)
-    setAuthError(null)
-    success('Welcome', `Logged in as ${lecturer.name}.`)
-  }
+    onAuthenticated("lecturer", lecturer.id);
+    setAuthError(null);
+    success("Welcome", `Logged in as ${lecturer.name}.`);
+  };
 
   const goBack = () => {
-    setLoginView('select')
-    setAuthError(null)
-    setCredentials({ username: '', password: '' })
-    setLecturerLogin({ email: '', password: '' })
-  }
+    setLoginView("select");
+    setAuthError(null);
+    setCredentials({ username: "", password: "" });
+    setLecturerLogin({ email: "", password: "" });
+  };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div
+      className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
+    >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="flex flex-col gap-3">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
-              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}>
-                <Fingerprint className="h-7 w-7" />
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+              >
+                {/* <Fingerprint className="h-7 w-7" /> */}
+                <img src={Logo} alt="Logo" />
               </div>
               <div>
-                <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h1
+                  className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                >
                   M.A.S. Access Gateway
                 </h1>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p
+                  className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                >
                   Multimodal Attendance System
                 </p>
               </div>
             </div>
             <button
-              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+              onClick={() => setTheme(isDark ? "light" : "dark")}
               className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition hover:bg-white/10 ${
-                isDark ? 'border-slate-600 text-slate-300' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                isDark
+                  ? "border-slate-600 text-slate-300"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-100"
               }`}
             >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {isDark ? 'Light Mode' : 'Dark Mode'}
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+              {isDark ? "Light Mode" : "Dark Mode"}
             </button>
           </motion.div>
-          <p className={`max-w-2xl text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-            {loginView === 'select' 
-              ? 'Select your role to access the attendance management system.'
-              : 'Authenticate to manage attendance operations, biometric audits, and course reporting.'}
+          <p
+            className={`max-w-2xl text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}
+          >
+            {loginView === "select"
+              ? "Select your role to access the attendance management system."
+              : "Authenticate to manage attendance operations, biometric audits, and course reporting."}
           </p>
         </header>
 
         {authError && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border px-4 py-3 text-sm ${isDark ? "border-slate-700 bg-slate-800/50" : "border-indigo-200 bg-indigo-50"} ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+            className={`rounded-xl border px-4 py-3 text-sm ${isDark ? "border-slate-700 bg-slate-800/50" : "border-indigo-200 bg-indigo-50"} ${isDark ? "text-slate-300" : "text-slate-600"}`}
           >
             {authError}
           </motion.div>
@@ -1747,7 +2202,7 @@ const Gateway = ({
 
         <AnimatePresence mode="wait">
           {/* Role Selection Screen */}
-          {loginView === 'select' && (
+          {loginView === "select" && (
             <motion.div
               key="select"
               initial={{ opacity: 0, y: 20 }}
@@ -1758,61 +2213,87 @@ const Gateway = ({
               <motion.button
                 whileHover={{ scale: 1.02, y: -4 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setLoginView('admin')}
+                onClick={() => setLoginView("admin")}
                 className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
-                  isDark 
-                    ? 'border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10' 
-                    : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg'
+                  isDark
+                    ? "border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10"
+                    : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg"
                 }`}
               >
-                <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
-                  isDark ? 'bg-slate-800 text-slate-300 group-hover:bg-slate-700' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
-                }`}>
+                <div
+                  className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
+                    isDark
+                      ? "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
+                      : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
+                  }`}
+                >
                   <ShieldCheck className="h-8 w-8" />
                 </div>
-                <h2 className={`mt-6 text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h2
+                  className={`mt-6 text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                >
                   Super Admin
                 </h2>
-                <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Full system access with lecturer management, global analytics, and audit controls.
+                <p
+                  className={`mt-2 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Full system access with lecturer management, global analytics,
+                  and audit controls.
                 </p>
-                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-indigo-600'}`}>
+                <div
+                  className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? "text-slate-300" : "text-indigo-600"}`}
+                >
                   <span>Access Dashboard</span>
-                  <span className="transition-transform group-hover:translate-x-1">→</span>
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
                 </div>
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.02, y: -4 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setLoginView('lecturer')}
+                onClick={() => setLoginView("lecturer")}
                 className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
-                  isDark 
-                    ? 'border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10' 
-                    : 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-lg'
+                  isDark
+                    ? "border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10"
+                    : "border-slate-200 bg-white hover:border-sky-300 hover:shadow-lg"
                 }`}
               >
-                <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
-                  isDark ? 'bg-slate-800 text-slate-300 group-hover:bg-slate-700' : 'bg-sky-50 text-sky-600 group-hover:bg-sky-100'
-                }`}>
+                <div
+                  className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
+                    isDark
+                      ? "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
+                      : "bg-sky-50 text-sky-600 group-hover:bg-sky-100"
+                  }`}
+                >
                   <Users className="h-8 w-8" />
                 </div>
-                <h2 className={`mt-6 text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h2
+                  className={`mt-6 text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                >
                   Lecturer
                 </h2>
-                <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Class attendance management, student verification, and session reports.
+                <p
+                  className={`mt-2 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Class attendance management, student verification, and session
+                  reports.
                 </p>
-                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-sky-600'}`}>
+                <div
+                  className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? "text-slate-300" : "text-sky-600"}`}
+                >
                   <span>Access Dashboard</span>
-                  <span className="transition-transform group-hover:translate-x-1">→</span>
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
                 </div>
               </motion.button>
             </motion.div>
           )}
 
           {/* Admin Login Screen */}
-          {loginView === 'admin' && (
+          {loginView === "admin" && (
             <motion.div
               key="admin"
               initial={{ opacity: 0, y: 20 }}
@@ -1823,68 +2304,105 @@ const Gateway = ({
               <form
                 onSubmit={handleSuperLogin}
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
                 }`}
               >
                 <button
                   type="button"
                   onClick={goBack}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-indigo-600 hover:text-indigo-700'
+                    isDark
+                      ? "text-slate-400 hover:text-slate-300"
+                      : "text-indigo-600 hover:text-indigo-700"
                   }`}
                 >
                   <span>←</span>
                   <span>Back to role selection</span>
                 </button>
-                
+
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'
-                  }`}>
+                  <div
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                      isDark
+                        ? "bg-slate-800 text-slate-300"
+                        : "bg-indigo-50 text-indigo-600"
+                    }`}
+                  >
                     <ShieldCheck className="h-7 w-7" />
                   </div>
                   <div>
-                    <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <h2
+                      className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
                       Super Admin Login
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       System administration access
                     </p>
                   </div>
                 </div>
-                
-                <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-slate-700 bg-slate-800/50 text-slate-400' : 'border-indigo-100 bg-indigo-50 text-indigo-700'
-                }`}>
+
+                <div
+                  className={`mt-6 rounded-xl border p-3 text-xs ${
+                    isDark
+                      ? "border-slate-700 bg-slate-800/50 text-slate-400"
+                      : "border-indigo-100 bg-indigo-50 text-indigo-700"
+                  }`}
+                >
                   <p className="font-medium">Demo credentials:</p>
-                  <p className="mt-1">Username: <code className="font-mono">admin</code> | Password: <code className="font-mono">admin</code></p>
+                  <p className="mt-1">
+                    Username: <code className="font-mono">admin</code> |
+                    Password: <code className="font-mono">admin</code>
+                  </p>
                 </div>
 
                 <div className="mt-6 space-y-4">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Username
                     </label>
                     <input
                       value={credentials.username}
-                      onChange={(event) => setCredentials({ ...credentials, username: event.target.value })}
+                      onChange={(event) =>
+                        setCredentials({
+                          ...credentials,
+                          username: event.target.value,
+                        })
+                      }
                       placeholder="Enter username"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-indigo-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Password
                     </label>
                     <input
                       value={credentials.password}
                       type="password"
-                      onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
+                      onChange={(event) =>
+                        setCredentials({
+                          ...credentials,
+                          password: event.target.value,
+                        })
+                      }
                       placeholder="Enter password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-indigo-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
@@ -1901,7 +2419,7 @@ const Gateway = ({
           )}
 
           {/* Lecturer Login Screen */}
-          {loginView === 'lecturer' && (
+          {loginView === "lecturer" && (
             <motion.div
               key="lecturer"
               initial={{ opacity: 0, y: 20 }}
@@ -1911,69 +2429,110 @@ const Gateway = ({
             >
               <div
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
                 }`}
               >
                 <button
                   type="button"
                   onClick={goBack}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-sky-600 hover:text-sky-700'
+                    isDark
+                      ? "text-slate-400 hover:text-slate-300"
+                      : "text-sky-600 hover:text-sky-700"
                   }`}
                 >
                   <span>←</span>
                   <span>Back to role selection</span>
                 </button>
-                
+
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-slate-800 text-slate-300' : 'bg-sky-50 text-sky-600'
-                  }`}>
+                  <div
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                      isDark
+                        ? "bg-slate-800 text-slate-300"
+                        : "bg-sky-50 text-sky-600"
+                    }`}
+                  >
                     <Users className="h-7 w-7" />
                   </div>
                   <div>
-                    <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <h2
+                      className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
                       Lecturer Login
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       Class attendance management
                     </p>
                   </div>
                 </div>
-                
-                <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-slate-700 bg-slate-800/50 text-slate-400' : 'border-sky-100 bg-sky-50 text-sky-700'
-                }`}>
+
+                <div
+                  className={`mt-6 rounded-xl border p-3 text-xs ${
+                    isDark
+                      ? "border-slate-700 bg-slate-800/50 text-slate-400"
+                      : "border-sky-100 bg-sky-50 text-sky-700"
+                  }`}
+                >
                   <p className="font-medium">Demo credentials:</p>
-                  <p className="mt-1">Email: <code className="font-mono text-[11px]">sarah.johnson@university.edu</code></p>
-                  <p>Password: <code className="font-mono">lecturer123</code></p>
+                  <p className="mt-1">
+                    Email:{" "}
+                    <code className="font-mono text-[11px]">
+                      sarah.johnson@university.edu
+                    </code>
+                  </p>
+                  <p>
+                    Password: <code className="font-mono">lecturer123</code>
+                  </p>
                 </div>
 
                 <form onSubmit={handleLecturerLogin} className="mt-6 space-y-4">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Email Address
                     </label>
                     <input
                       value={lecturerLogin.email}
-                      onChange={(event) => setLecturerLogin({ ...lecturerLogin, email: event.target.value })}
+                      onChange={(event) =>
+                        setLecturerLogin({
+                          ...lecturerLogin,
+                          email: event.target.value,
+                        })
+                      }
                       placeholder="Enter your email"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-sky-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Password
                     </label>
                     <input
                       value={lecturerLogin.password}
                       type="password"
-                      onChange={(event) => setLecturerLogin({ ...lecturerLogin, password: event.target.value })}
+                      onChange={(event) =>
+                        setLecturerLogin({
+                          ...lecturerLogin,
+                          password: event.target.value,
+                        })
+                      }
                       placeholder="Enter password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-sky-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
@@ -1985,17 +2544,21 @@ const Gateway = ({
                     Sign In as Lecturer
                   </button>
                 </form>
-                
-                <div className={`mt-6 border-t pt-6 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-                  <p className={`text-center text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+
+                <div
+                  className={`mt-6 border-t pt-6 ${isDark ? "border-slate-700" : "border-slate-200"}`}
+                >
+                  <p
+                    className={`text-center text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                  >
                     Don't have an account?
                   </p>
                   <button
-                    onClick={() => setLoginView('lecturer-signup')}
+                    onClick={() => setLoginView("lecturer-signup")}
                     className={`mt-3 w-full rounded-xl border px-4 py-3 text-sm font-semibold transition ${
-                      isDark 
-                        ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
-                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                      isDark
+                        ? "border-slate-600 text-slate-300 hover:bg-slate-800"
+                        : "border-slate-200 text-slate-700 hover:bg-slate-50"
                     }`}
                   >
                     Create Lecturer Account
@@ -2006,7 +2569,7 @@ const Gateway = ({
           )}
 
           {/* Lecturer Signup Screen */}
-          {loginView === 'lecturer-signup' && (
+          {loginView === "lecturer-signup" && (
             <motion.div
               key="lecturer-signup"
               initial={{ opacity: 0, y: 20 }}
@@ -2016,95 +2579,152 @@ const Gateway = ({
             >
               <div
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
+                  isDark
+                    ? "border-slate-700 bg-slate-900/50"
+                    : "border-slate-200 bg-white"
                 }`}
               >
                 <button
                   type="button"
-                  onClick={() => setLoginView('lecturer')}
+                  onClick={() => setLoginView("lecturer")}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-sky-600 hover:text-sky-700'
+                    isDark
+                      ? "text-slate-400 hover:text-slate-300"
+                      : "text-sky-600 hover:text-sky-700"
                   }`}
                 >
                   <span>←</span>
                   <span>Back to login</span>
                 </button>
-                
+
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                  }`}>
+                  <div
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                      isDark
+                        ? "bg-emerald-900/30 text-emerald-400"
+                        : "bg-emerald-50 text-emerald-600"
+                    }`}
+                  >
                     <UserPlus className="h-7 w-7" />
                   </div>
                   <div>
-                    <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <h2
+                      className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
                       Lecturer Registration
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p
+                      className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       Create your access account
                     </p>
                   </div>
                 </div>
-                
-                <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-amber-800/30 bg-amber-900/20 text-amber-400' : 'border-amber-100 bg-amber-50 text-amber-700'
-                }`}>
-                  <p>⚠️ New accounts require admin approval before activation.</p>
+
+                <div
+                  className={`mt-6 rounded-xl border p-3 text-xs ${
+                    isDark
+                      ? "border-amber-800/30 bg-amber-900/20 text-amber-400"
+                      : "border-amber-100 bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  <p>
+                    ⚠️ New accounts require admin approval before activation.
+                  </p>
                 </div>
 
-                <form onSubmit={handleLecturerSignup} className="mt-6 space-y-4">
+                <form
+                  onSubmit={handleLecturerSignup}
+                  className="mt-6 space-y-4"
+                >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <label
+                        className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                      >
                         Full Name
                       </label>
                       <input
                         value={lecturerForm.name}
-                        onChange={(event) => setLecturerForm({ ...lecturerForm, name: event.target.value })}
+                        onChange={(event) =>
+                          setLecturerForm({
+                            ...lecturerForm,
+                            name: event.target.value,
+                          })
+                        }
                         placeholder="Dr. John Smith"
                         className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                          isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                          isDark
+                            ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                            : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                         }`}
                       />
                     </div>
                     <div>
-                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <label
+                        className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                      >
                         Email Address
                       </label>
                       <input
                         value={lecturerForm.email}
-                        onChange={(event) => setLecturerForm({ ...lecturerForm, email: event.target.value })}
+                        onChange={(event) =>
+                          setLecturerForm({
+                            ...lecturerForm,
+                            email: event.target.value,
+                          })
+                        }
                         placeholder="john@university.edu"
                         className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                          isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                          isDark
+                            ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                            : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                         }`}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Assigned Class
                     </label>
                     <input
                       value={lecturerForm.className}
-                      onChange={(event) => setLecturerForm({ ...lecturerForm, className: event.target.value })}
+                      onChange={(event) =>
+                        setLecturerForm({
+                          ...lecturerForm,
+                          className: event.target.value,
+                        })
+                      }
                       placeholder="e.g. Database System (CSC 301)"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <label
+                      className={`block text-xs font-medium mb-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       Password
                     </label>
                     <input
                       value={lecturerForm.password}
                       type="password"
-                      onChange={(event) => setLecturerForm({ ...lecturerForm, password: event.target.value })}
+                      onChange={(event) =>
+                        setLecturerForm({
+                          ...lecturerForm,
+                          password: event.target.value,
+                        })
+                      }
                       placeholder="Create a secure password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark
+                          ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
+                          : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
                       }`}
                     />
                   </div>
@@ -2120,67 +2740,71 @@ const Gateway = ({
             </motion.div>
           )}
         </AnimatePresence>
-        
-        <footer className={`mt-10 text-center text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+
+        <footer
+          className={`mt-10 text-center text-xs ${isDark ? "text-slate-500" : "text-slate-500"}`}
+        >
           Designed and Developed by Joshua Joel and Adeyemi Favour
         </footer>
       </div>
     </div>
-  )
-}
+  );
+};
 
 function App() {
   const [role, setRole] = useState<Role>(() => {
-    const stored = window.localStorage.getItem('mas-role')
-    if (stored === 'super' || stored === 'lecturer') {
-      return stored
+    const stored = window.localStorage.getItem("mas-role");
+    if (stored === "super" || stored === "lecturer") {
+      return stored;
     }
-    return 'none'
-  })
+    return "none";
+  });
   const [activeLecturerId, setActiveLecturerId] = useState<string | null>(() =>
-    window.localStorage.getItem('mas-lecturer-id'),
-  )
-  const [theme, setTheme] = useState<ThemeMode>('light')
+    window.localStorage.getItem("mas-lecturer-id"),
+  );
+  const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    if (role === 'none') {
-      window.localStorage.removeItem('mas-role')
-      window.localStorage.removeItem('mas-lecturer-id')
+    if (role === "none") {
+      window.localStorage.removeItem("mas-role");
+      window.localStorage.removeItem("mas-lecturer-id");
     } else {
-      window.localStorage.setItem('mas-role', role)
-      if (role === 'lecturer' && activeLecturerId) {
-        window.localStorage.setItem('mas-lecturer-id', activeLecturerId)
+      window.localStorage.setItem("mas-role", role);
+      if (role === "lecturer" && activeLecturerId) {
+        window.localStorage.setItem("mas-lecturer-id", activeLecturerId);
       }
     }
-  }, [role, activeLecturerId])
+  }, [role, activeLecturerId]);
 
   return (
     <NotificationProvider>
       <BiometricProvider>
         <MasStoreProvider>
-          {role === 'none' ? (
+          {role === "none" ? (
             <Gateway
               onAuthenticated={(nextRole, lecturerId) => {
-                setRole(nextRole)
-                setActiveLecturerId(lecturerId ?? null)
+                setRole(nextRole);
+                setActiveLecturerId(lecturerId ?? null);
               }}
             />
           ) : (
             <Dashboard
               role={role}
               onLogout={() => {
-                setRole('none')
-                setActiveLecturerId(null)
+                setRole("none");
+                setActiveLecturerId(null);
               }}
               theme={theme}
-              onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              activeLecturerId={role === 'lecturer' ? activeLecturerId : null}
+              onToggleTheme={() =>
+                setTheme(theme === "dark" ? "light" : "dark")
+              }
+              activeLecturerId={role === "lecturer" ? activeLecturerId : null}
             />
           )}
         </MasStoreProvider>
       </BiometricProvider>
     </NotificationProvider>
-  )
+  );
 }
 
-export default App
+export default App;
