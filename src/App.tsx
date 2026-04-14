@@ -79,8 +79,8 @@ const Dashboard = ({
   const [scanMode, setScanMode] = useState<ScanMode>('Face')
   const isDark = theme === 'dark'
   const headingText = isDark ? 'text-white' : 'text-slate-900'
-  const bodyText = isDark ? 'text-indigo-100' : 'text-slate-600'
-  const subtleText = isDark ? 'text-indigo-200' : 'text-slate-500'
+  const bodyText = isDark ? 'text-slate-300' : 'text-slate-600'
+  const subtleText = isDark ? 'text-slate-400' : 'text-slate-500'
   
   const [lastScan, setLastScan] = useState<
     | {
@@ -474,8 +474,8 @@ const Dashboard = ({
       <div
         className={
           isDark
-            ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950'
-            : 'bg-gradient-to-br from-white via-slate-100 to-indigo-100'
+            ? 'bg-gradient-to-br from-gray-950 via-slate-950 to-slate-900'
+            : 'bg-gradient-to-br from-white via-slate-50 to-indigo-50'
         }
       >
         <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-4 sm:py-6">
@@ -483,7 +483,7 @@ const Dashboard = ({
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-indigo-500/20 text-indigo-300"
+              className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
             >
               <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6" />
             </motion.div>
@@ -496,13 +496,13 @@ const Dashboard = ({
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden items-center gap-2 text-xs text-indigo-200 lg:flex">
-              <span className="rounded-full border border-indigo-400/40 px-3 py-1">Provider Pattern</span>
-              <span className="rounded-full border border-indigo-400/40 px-3 py-1">Hardware Simulation</span>
+            <div className={`hidden items-center gap-2 text-xs lg:flex ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+              <span className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}>Provider Pattern</span>
+              <span className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}>Hardware Simulation</span>
             </div>
             <button
               onClick={onToggleTheme}
-              className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-indigo-400/40 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:bg-white/10"
+              className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition ${isDark ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'}</span>
@@ -512,7 +512,7 @@ const Dashboard = ({
         
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6 text-sm">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <span className="rounded-full bg-indigo-500/20 px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
+            <span className={`rounded-full px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wide ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-700"}`}>
               {role === 'super' ? 'Super Admin' : 'Lecturer'}
             </span>
             {role === 'lecturer' && activeLecturer ? (
@@ -525,7 +525,7 @@ const Dashboard = ({
           </div>
           <button
             onClick={onLogout}
-            className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-indigo-400/40 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:bg-white/10"
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition ${isDark ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sign out</span>
@@ -540,56 +540,56 @@ const Dashboard = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-2xl border p-4 sm:p-6 ${
-                  isDark ? 'border-indigo-400/30 bg-white/5' : 'border-indigo-200 bg-white'
+                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
                 }`}
               >
                 {/* Stats Grid - Now inside the card at the top */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
                   <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
                         <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
                     <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {students.length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>Total Students</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Students</p>
                     <p className="text-xs font-medium text-emerald-400 mt-1">↑ 12% from last week</p>
                   </div>
                   <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
                         <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
                     <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {lecturers.filter(l => l.status === 'Active').length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>Active Lecturers</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Lecturers</p>
                   </div>
                   <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
                         <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
                     <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {role === 'super' ? logs.length : lecturerLogs.length}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>{role === 'super' ? 'Total Scans' : 'Class Scans'}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{role === 'super' ? 'Total Scans' : 'Class Scans'}</p>
                     <p className="text-xs font-medium text-emerald-400 mt-1">↑ 8% from last week</p>
                   </div>
                   <div className={`rounded-xl p-3 sm:p-4 ${isDark ? 'bg-slate-950/50' : 'bg-slate-50'}`}>
                     <div className="flex items-center justify-between">
-                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'}`}>
                         <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                     </div>
                     <p className={`mt-2 text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {activeSession ? '1' : '0'}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>Active Sessions</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Sessions</p>
                   </div>
                 </div>
 
@@ -601,13 +601,13 @@ const Dashboard = ({
                       Face ID and Fingerprint verification
                     </p>
                   </div>
-                  <div className="flex rounded-full border border-indigo-400/30 bg-indigo-500/10 p-1 text-xs font-semibold self-start sm:self-auto">
+                  <div className={`flex rounded-full border p-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
                     {(['Face', 'Fingerprint'] as ScanMode[]).map((mode) => (
                       <button
                         key={mode}
                         onClick={() => setScanMode(mode)}
                         className={`rounded-full px-3 py-1.5 transition ${
-                          scanMode === mode ? 'bg-white text-slate-900' : 'text-indigo-100'
+                          scanMode === mode ? 'bg-white text-slate-900' : isDark ? 'text-slate-300' : 'text-slate-600'
                         }`}
                       >
                         {mode === 'Face' ? 'Face ID' : mode}
@@ -624,7 +624,7 @@ const Dashboard = ({
                   />
                   <div
                     className={`rounded-2xl border p-4 ${
-                      isDark ? 'border-indigo-400/30 bg-slate-950/40' : 'border-indigo-200 bg-white'
+                      isDark ? 'border-slate-700 bg-slate-900/60' : 'border-slate-200 bg-white'
                     }`}
                   >
                     <p className={`text-xs font-semibold uppercase ${subtleText}`}>Scan Result</p>
@@ -669,23 +669,23 @@ const Dashboard = ({
                               {lastScan.status === 'success' ? 'Attendance Taken' : 'Verification Failed'}
                             </span>
                           </div>
-                          <p className="mt-2 text-xs text-indigo-100">{lastScan.message}</p>
+                          <p className={`mt-2 text-xs ${isDark ? "text-slate-300" : "text-slate-600"}`}>{lastScan.message}</p>
                           {lastScan.status === 'success' && lastScan.student ? (
-                            <div className="mt-3 flex items-center gap-3 rounded-lg bg-white/5 p-2">
+                            <div className={`mt-3 flex items-center gap-3 rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-slate-50"}`}>
                               <img
                                 src={lastCapturedImage || lastScan.student.photoUrl}
                                 alt={lastScan.student.name}
                                 className="h-10 w-10 rounded-full border border-white/20 object-cover"
                               />
                               <div>
-                                <p className="text-sm font-semibold text-white">{lastScan.student.name}</p>
-                                <p className="text-xs text-indigo-100">{lastScan.student.matricNumber}</p>
+                                <p className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>{lastScan.student.name}</p>
+                                <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-500"}`}>{lastScan.student.matricNumber}</p>
                               </div>
                             </div>
                           ) : null}
                         </div>
                       ) : (
-                        <p className="text-xs text-indigo-200">Run a scan to display the latest result.</p>
+                        <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Run a scan to display the latest result.</p>
                       )}
                       {scanMode === 'Fingerprint' && (
                         <button
@@ -698,7 +698,7 @@ const Dashboard = ({
                         </button>
                       )}
                       {scanMode === 'Face' && (
-                        <p className="text-xs text-indigo-200 text-center">
+                        <p className={`text-xs text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           Click "Face ID" button on the console to start facial verification
                         </p>
                       )}
@@ -713,7 +713,7 @@ const Dashboard = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`rounded-2xl border p-5 ${
-                    isDark ? 'border-indigo-400/30 bg-white/5' : 'border-indigo-200 bg-white'
+                    isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -737,7 +737,7 @@ const Dashboard = ({
                       {activeSession && (
                         <button
                           onClick={() => setSessionClosePrompt(true)}
-                          className="flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
+                          className={`flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold transition hover:bg-rose-500/10 ${isDark ? "text-rose-300" : "text-rose-600"}`}
                         >
                           <Clock className="h-4 w-4" />
                           Close Session
@@ -752,7 +752,7 @@ const Dashboard = ({
             {/* Right Panel */}
             <div
               className={`rounded-2xl border p-4 sm:p-6 ${
-                isDark ? 'border-indigo-500/30 bg-white/5' : 'border-indigo-200 bg-white'
+                isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
               }`}
             >
               {role === 'super' ? (
@@ -764,14 +764,14 @@ const Dashboard = ({
                   <div className="mt-4 grid gap-3 grid-cols-2">
                     <button
                       onClick={() => setAddLecturerModalOpen(true)}
-                      className="rounded-xl border border-indigo-400/30 bg-white/5 px-3 sm:px-4 py-3 text-left text-sm font-semibold text-indigo-100 transition hover:bg-white/10"
+                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                     >
                       <UserPlus className="mb-2 h-5 w-5" />
                       Add Lecturer
                     </button>
                     <button
                       onClick={() => setAssignLecturerModalOpen(true)}
-                      className="rounded-xl border border-indigo-400/30 bg-white/5 px-3 sm:px-4 py-3 text-left text-sm font-semibold text-indigo-100 transition hover:bg-white/10"
+                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                     >
                       <Users className="mb-2 h-5 w-5" />
                       Assign Students
@@ -781,7 +781,7 @@ const Dashboard = ({
                     {lecturers.map((lecturer) => (
                       <div
                         key={lecturer.id}
-                        className="flex items-center justify-between rounded-xl border border-indigo-400/30 bg-white/5 p-3"
+                        className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
                       >
                         <div>
                           <p className={`font-semibold ${headingText}`}>{lecturer.name}</p>
@@ -797,8 +797,8 @@ const Dashboard = ({
                             }
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${
                               lecturer.status === 'Active'
-                                ? 'bg-emerald-400/20 text-emerald-100'
-                                : 'bg-amber-300/20 text-amber-100'
+                                ? 'bg-emerald-900/30 text-emerald-400'
+                                : 'bg-amber-500/20 text-amber-300'
                             }`}
                           >
                             {lecturer.status}
@@ -811,7 +811,7 @@ const Dashboard = ({
                                 name: lecturer.name,
                               })
                             }
-                            className="rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold text-rose-200"
+                            className={`rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold ${isDark ? "text-rose-300" : "text-rose-600"}`}
                           >
                             Delete
                           </button>
@@ -831,7 +831,7 @@ const Dashboard = ({
                   </p>
                   <div className="mt-6 space-y-4 text-sm">
                     <div className="flex items-start gap-3">
-                      <div className="mt-1 rounded-lg bg-indigo-500/20 p-2 text-indigo-200">
+                      <div className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}>
                         <BookOpen className="h-4 w-4" />
                       </div>
                       <div>
@@ -840,7 +840,7 @@ const Dashboard = ({
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="mt-1 rounded-lg bg-indigo-500/20 p-2 text-indigo-200">
+                      <div className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}>
                         <Database className="h-4 w-4" />
                       </div>
                       <div>
@@ -850,7 +850,7 @@ const Dashboard = ({
                     </div>
                     <button
                       onClick={exportAttendance}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-300/30 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                      className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${isDark ? "border-slate-600 bg-slate-800 text-white hover:bg-slate-700" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
                     >
                       <FileDown className="h-4 w-4" />
                       Export Attendance CSV
@@ -873,10 +873,10 @@ const Dashboard = ({
             whileTap={{ scale: 0.98 }}
             onClick={() => setAttendanceModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-indigo-400/30 bg-white/5 hover:border-indigo-400/50' : 'border-indigo-200 bg-white hover:border-indigo-300'
+              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
             }`}
           >
-            <ClipboardCheck className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            <ClipboardCheck className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
             <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Attendance Logs</h3>
             <p className={`mt-1 text-xs ${bodyText}`}>
               {role === 'super' ? logs.length : lecturerLogs.length} entries
@@ -888,10 +888,10 @@ const Dashboard = ({
             whileTap={{ scale: 0.98 }}
             onClick={() => setStudentModal('active')}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-indigo-400/30 bg-white/5 hover:border-indigo-400/50' : 'border-indigo-200 bg-white hover:border-indigo-300'
+              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
             }`}
           >
-            <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
             <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Student Roster</h3>
             <p className={`mt-1 text-xs ${bodyText}`}>{students.length} students</p>
           </motion.button>
@@ -901,10 +901,10 @@ const Dashboard = ({
             whileTap={{ scale: 0.98 }}
             onClick={() => setAnalyticsModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-indigo-400/30 bg-white/5 hover:border-indigo-400/50' : 'border-indigo-200 bg-white hover:border-indigo-300'
+              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
             }`}
           >
-            <BarChart3 className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            <BarChart3 className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
             <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Analytics</h3>
             <p className={`mt-1 text-xs ${bodyText}`}>View trends & stats</p>
           </motion.button>
@@ -914,10 +914,10 @@ const Dashboard = ({
             whileTap={{ scale: 0.98 }}
             onClick={() => setRegistrationModalOpen(true)}
             className={`rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-left transition ${
-              isDark ? 'border-indigo-400/30 bg-white/5 hover:border-indigo-400/50' : 'border-indigo-200 bg-white hover:border-indigo-300'
+              isDark ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500' : 'border-slate-200 bg-white hover:border-indigo-300'
             }`}
           >
-            <UserPlus className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            <UserPlus className={`h-5 w-5 sm:h-6 sm:w-6 ${isDark ? 'text-slate-300' : 'text-indigo-600'}`} />
             <h3 className={`mt-2 sm:mt-3 text-xs sm:text-sm font-semibold ${headingText}`}>Register Student</h3>
             <p className={`mt-1 text-xs ${bodyText}`}>Enroll new student</p>
           </motion.button>
@@ -929,7 +929,7 @@ const Dashboard = ({
             <button
               onClick={() => setImportExportModalOpen(true)}
               className={`flex items-center gap-2 rounded-xl border px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition ${
-                isDark ? 'border-indigo-400/30 text-indigo-100 hover:bg-white/5' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
+                isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
               }`}
             >
               <Upload className="h-4 w-4" />
@@ -942,7 +942,7 @@ const Dashboard = ({
         {/* Session Calendar */}
         <div
           className={`rounded-xl sm:rounded-2xl border p-4 sm:p-6 ${
-            isDark ? 'border-indigo-400/30 bg-white/5' : 'border-indigo-200 bg-white'
+            isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
           }`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
@@ -952,7 +952,7 @@ const Dashboard = ({
                 Click a date to view sessions and exports.
               </p>
             </div>
-            <span className="rounded-full border border-indigo-400/30 px-3 py-1 text-xs font-semibold text-indigo-100 self-start sm:self-auto">
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold self-start sm:self-auto ${isDark ? "border-slate-600 text-slate-300" : "border-slate-300 text-slate-600"}`}>
               {calendarDates.length} active days
             </span>
           </div>
@@ -966,7 +966,7 @@ const Dashboard = ({
                   setCalendarModalOpen(true)
                 }}
                 className={`rounded-xl border px-3 sm:px-4 py-3 sm:py-4 text-left text-sm transition ${
-                  isDark ? 'border-indigo-400/20 bg-slate-950/20 hover:bg-indigo-500/10' : 'border-slate-200 bg-slate-50 hover:bg-indigo-50'
+                  isDark ? 'border-slate-700 bg-slate-900/30 hover:bg-slate-800/50' : 'border-slate-200 bg-slate-50 hover:bg-indigo-50'
                 }`}
               >
                 <p className={`text-xs ${subtleText}`}>Session Date</p>
@@ -977,7 +977,7 @@ const Dashboard = ({
               </motion.button>
             ))}
             {calendarDates.length === 0 && (
-              <div className={`rounded-xl border p-4 sm:p-6 text-center col-span-full ${isDark ? 'border-indigo-400/20' : 'border-slate-200'}`}>
+              <div className={`rounded-xl border p-4 sm:p-6 text-center col-span-full ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
                 <p className={`text-sm ${bodyText}`}>No sessions logged yet.</p>
               </div>
             )}
@@ -1003,27 +1003,27 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <ClipboardCheck className="h-5 w-5 text-indigo-300" />
+                  <ClipboardCheck className="h-5 w-5 text-indigo-400" />
                   Start Attendance Session
                 </div>
                 <button
                   onClick={() => setSessionPromptOpen(false)}
-                  className="rounded-full border border-white/10 px-3 py-1 text-xs text-indigo-100"
+                  className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300"
                 >
                   Close
                 </button>
               </div>
-              <p className="mt-2 text-sm text-indigo-100">Enter class session and begin attendance.</p>
+              <p className="mt-2 text-sm text-slate-300">Enter class session and begin attendance.</p>
               <div className="mt-4 space-y-3">
                 <input
                   value={sessionForm.label}
                   onChange={(event) => setSessionForm({ label: event.target.value })}
                   placeholder="e.g. 1st Class"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <button
                   onClick={beginSession}
@@ -1059,12 +1059,12 @@ const Dashboard = ({
                 </div>
                 <button
                   onClick={() => setSessionClosePrompt(false)}
-                  className="rounded-full border border-white/10 px-3 py-1 text-xs text-indigo-100"
+                  className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300"
                 >
                   Cancel
                 </button>
               </div>
-              <p className="mt-2 text-sm text-indigo-100">
+              <p className="mt-2 text-sm text-slate-300">
                 End this session and finalize attendance logs for {activeSession?.label}.
               </p>
               <button
@@ -1094,13 +1094,13 @@ const Dashboard = ({
               className="w-full max-w-md rounded-2xl border border-rose-400/40 bg-slate-900 p-6 shadow-2xl"
             >
               <p className="text-lg font-semibold text-white">Confirm Delete</p>
-              <p className="mt-2 text-sm text-indigo-100">
+              <p className="mt-2 text-sm text-slate-300">
                 Are you sure you want to delete {confirmDialog.name}? This action cannot be undone.
               </p>
               <div className="mt-5 flex gap-3">
                 <button
                   onClick={() => setConfirmDialog(undefined)}
-                  className="flex-1 rounded-xl border border-indigo-400/30 px-4 py-2 text-xs font-semibold text-indigo-100"
+                  className="flex-1 rounded-xl border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-300"
                 >
                   Keep
                 </button>
@@ -1129,12 +1129,12 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-lg font-semibold text-white">Attendance Logs</p>
-                  <p className="text-xs text-indigo-100">Session-based attendance records.</p>
+                  <p className="text-xs text-slate-300">Session-based attendance records.</p>
                 </div>
                 <button
                   onClick={() => setAttendanceModalOpen(false)}
@@ -1166,12 +1166,12 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-lg font-semibold text-white">Student Registration</p>
-                  <p className="text-xs text-indigo-100">Capture details and enroll biometrics.</p>
+                  <p className="text-xs text-slate-300">Capture details and enroll biometrics.</p>
                 </div>
                 <button
                   onClick={() => setRegistrationModalOpen(false)}
@@ -1185,19 +1185,19 @@ const Dashboard = ({
                   value={registration.name}
                   onChange={(event) => setRegistration({ ...registration, name: event.target.value })}
                   placeholder="Full Name *"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.matric}
                   onChange={(event) => setRegistration({ ...registration, matric: event.target.value })}
                   placeholder="Matric Number *"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.program}
                   onChange={(event) => setRegistration({ ...registration, program: event.target.value })}
                   placeholder="Program *"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 {role === 'lecturer' ? (
                   <input
@@ -1210,7 +1210,7 @@ const Dashboard = ({
                     value={registration.className}
                     onChange={(event) => setRegistration({ ...registration, className: event.target.value })}
                     placeholder="Class *"
-                    className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                    className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                   />
                 )}
                 <input
@@ -1218,19 +1218,19 @@ const Dashboard = ({
                   onChange={(event) => setRegistration({ ...registration, email: event.target.value })}
                   placeholder="Email (optional)"
                   type="email"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 <input
                   value={registration.phone}
                   onChange={(event) => setRegistration({ ...registration, phone: event.target.value })}
                   placeholder="Phone (optional)"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300"
                 />
                 {role === 'super' && (
                   <select
                     value={registration.lecturerId}
                     onChange={(event) => setRegistration({ ...registration, lecturerId: event.target.value })}
-                    className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300 md:col-span-2"
+                    className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white outline-none focus:border-indigo-300 md:col-span-2"
                   >
                     <option value="">Assign Lecturer *</option>
                     {lecturers.map((lecturer) => (
@@ -1240,10 +1240,10 @@ const Dashboard = ({
                     ))}
                   </select>
                 )}
-                <div className="rounded-xl border border-indigo-400/30 bg-white/5 p-4 md:col-span-2">
+                <div className="rounded-xl border border-slate-600 bg-slate-800/50 p-4 md:col-span-2">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/10 text-indigo-200">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-400">
                         {capturedPhoto ? (
                           <img src={capturedPhoto} alt="Student" className="h-14 w-14 rounded-full" />
                         ) : (
@@ -1252,7 +1252,7 @@ const Dashboard = ({
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-white">Facial Capture</p>
-                        <p className="text-xs text-indigo-100">
+                        <p className="text-xs text-slate-300">
                           {capturedPhoto ? 'Photo stored for verification.' : 'Use device camera to capture.'}
                         </p>
                       </div>
@@ -1260,19 +1260,19 @@ const Dashboard = ({
                     <button
                       type="button"
                       onClick={handleCapturePhoto}
-                      className="rounded-full border border-indigo-300/40 px-4 py-2 text-xs font-semibold text-indigo-100 transition hover:bg-white/10"
+                      className="rounded-full border border-slate-500 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-700"
                     >
                       Capture Photo
                     </button>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-14 w-14 items-center justify-center rounded-full border border-indigo-300/30 ${enrolledFingerprint ? 'bg-emerald-500/20 text-emerald-300' : 'bg-indigo-500/10 text-indigo-200'}`}>
+                      <div className={`flex h-14 w-14 items-center justify-center rounded-full border border-slate-600 ${enrolledFingerprint ? 'bg-emerald-900/30 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
                         <Fingerprint className="h-6 w-6" />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-white">Fingerprint Enrollment</p>
-                        <p className="text-xs text-indigo-100">
+                        <p className="text-xs text-slate-300">
                           {enrolledFingerprint ? 'Fingerprint enrolled.' : 'Scan fingerprint to enroll.'}
                         </p>
                       </div>
@@ -1280,7 +1280,7 @@ const Dashboard = ({
                     <button
                       type="button"
                       onClick={handleEnrollFingerprint}
-                      className="rounded-full border border-indigo-300/40 px-4 py-2 text-xs font-semibold text-indigo-100 transition hover:bg-white/10"
+                      className="rounded-full border border-slate-500 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-700"
                     >
                       Enroll Fingerprint
                     </button>
@@ -1294,7 +1294,7 @@ const Dashboard = ({
                     Register Student Profile
                   </button>
                   {registrationMessage && (
-                    <p className="text-xs text-indigo-100 text-center">{registrationMessage}</p>
+                    <p className="text-xs text-slate-300 text-center">{registrationMessage}</p>
                   )}
                 </div>
               </form>
@@ -1316,12 +1316,12 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-lg font-semibold text-white">Sessions on {selectedCalendarDate}</p>
-                  <p className="text-xs text-indigo-100">{calendarSessions.length} students present</p>
+                  <p className="text-xs text-slate-300">{calendarSessions.length} students present</p>
                 </div>
                 <button
                   onClick={() => setCalendarModalOpen(false)}
@@ -1334,26 +1334,26 @@ const Dashboard = ({
                 {calendarSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between rounded-xl border border-indigo-400/20 bg-slate-950/30 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3"
                   >
                     <div>
                       <p className="text-sm font-semibold text-white">{session.studentName}</p>
-                      <p className="text-xs text-indigo-100">{session.studentMatricNumber ?? 'N/A'} • {session.sessionLabel}</p>
+                      <p className="text-xs text-slate-300">{session.studentMatricNumber ?? 'N/A'} • {session.sessionLabel}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-indigo-100">{session.className}</p>
-                      <p className="text-xs text-indigo-200">{session.sessionStart}</p>
+                      <p className="text-xs text-slate-300">{session.className}</p>
+                      <p className="text-xs text-slate-400">{session.sessionStart}</p>
                     </div>
                   </div>
                 ))}
                 {calendarSessions.length === 0 && (
-                  <p className="text-sm text-indigo-100 text-center py-4">No sessions available for this date.</p>
+                  <p className="text-sm text-slate-300 text-center py-4">No sessions available for this date.</p>
                 )}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   onClick={exportCalendarSessions}
-                  className="flex-1 rounded-xl border border-indigo-400/30 px-4 py-2 text-xs font-semibold text-indigo-100"
+                  className="flex-1 rounded-xl border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-300"
                 >
                   <Download className="mr-2 inline h-4 w-4" />
                   Export Session
@@ -1383,14 +1383,14 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-lg font-semibold text-white">
                     {studentModal === 'active' ? 'Student Roster' : 'Manage Students'}
                   </p>
-                  <p className="text-xs text-indigo-100">
+                  <p className="text-xs text-slate-300">
                     {studentModal === 'active' ? 'Click a student to view their profile.' : 'Remove or update student access.'}
                   </p>
                 </div>
@@ -1430,7 +1430,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-white">Add Lecturer</p>
@@ -1446,26 +1446,26 @@ const Dashboard = ({
                   value={lecturerDraft.name}
                   onChange={(event) => setLecturerDraft({ ...lecturerDraft, name: event.target.value })}
                   placeholder="Lecturer Name"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.email}
                   onChange={(event) => setLecturerDraft({ ...lecturerDraft, email: event.target.value })}
                   placeholder="Email"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.className}
                   onChange={(event) => setLecturerDraft({ ...lecturerDraft, className: event.target.value })}
                   placeholder="Class"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <input
                   value={lecturerDraft.password}
                   onChange={(event) => setLecturerDraft({ ...lecturerDraft, password: event.target.value })}
                   placeholder="Password"
                   type="password"
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 />
                 <button
                   type="submit"
@@ -1492,7 +1492,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-lg rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-white">Assign Students to Lecturers</p>
@@ -1509,7 +1509,7 @@ const Dashboard = ({
                   onChange={(event) =>
                     setStudentAssignment({ ...studentAssignment, studentId: event.target.value })
                   }
-                  className="w-full rounded-xl border border-indigo-400/30 bg-slate-950/60 px-4 py-3 text-sm text-white"
+                  className="w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-white"
                 >
                   <option value="">Select student</option>
                   {students.map((student) => (
@@ -1536,7 +1536,7 @@ const Dashboard = ({
                         className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                           isSelected
                             ? 'bg-indigo-500 text-white'
-                            : 'border border-indigo-400/40 text-indigo-100 hover:bg-white/5'
+                            : 'border border-slate-600 text-slate-300 hover:bg-slate-800'
                         }`}
                       >
                         {lecturer.name}
@@ -1570,12 +1570,12 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-lg font-semibold text-white">Analytics Dashboard</p>
-                  <p className="text-xs text-indigo-100">Attendance trends and statistics</p>
+                  <p className="text-xs text-slate-300">Attendance trends and statistics</p>
                 </div>
                 <button
                   onClick={() => setAnalyticsModalOpen(false)}
@@ -1627,7 +1627,7 @@ const Gateway = ({
 }) => {
   const { lecturers, addLecturer } = useMasStore()
   const { success, error: notifyError, info } = useNotification()
-  const [theme, setTheme] = useState<ThemeMode>('dark')
+  const [theme, setTheme] = useState<ThemeMode>('light')
   const isDark = theme === 'dark'
   const [authError, setAuthError] = useState<string | null>(null)
   const [credentials, setCredentials] = useState({ username: '', password: '' })
@@ -1706,14 +1706,14 @@ const Gateway = ({
             className="flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}>
                 <Fingerprint className="h-7 w-7" />
               </div>
               <div>
                 <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   M.A.S. Access Gateway
                 </h1>
-                <p className={`text-sm ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Multimodal Attendance System
                 </p>
               </div>
@@ -1721,14 +1721,14 @@ const Gateway = ({
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition hover:bg-white/10 ${
-                isDark ? 'border-indigo-400/40 text-indigo-100' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                isDark ? 'border-slate-600 text-slate-300' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
               }`}
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               {isDark ? 'Light Mode' : 'Dark Mode'}
             </button>
           </motion.div>
-          <p className={`max-w-2xl text-sm ${isDark ? 'text-indigo-100' : 'text-slate-600'}`}>
+          <p className={`max-w-2xl text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
             {loginView === 'select' 
               ? 'Select your role to access the attendance management system.'
               : 'Authenticate to manage attendance operations, biometric audits, and course reporting.'}
@@ -1739,7 +1739,7 @@ const Gateway = ({
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-3 text-sm ${isDark ? 'text-indigo-100' : 'text-slate-600'}`}
+            className={`rounded-xl border px-4 py-3 text-sm ${isDark ? "border-slate-700 bg-slate-800/50" : "border-indigo-200 bg-indigo-50"} ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
           >
             {authError}
           </motion.div>
@@ -1761,22 +1761,22 @@ const Gateway = ({
                 onClick={() => setLoginView('admin')}
                 className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
                   isDark 
-                    ? 'border-indigo-400/20 bg-gradient-to-br from-indigo-950/50 to-slate-900 hover:border-indigo-400/50 hover:shadow-indigo-500/10' 
+                    ? 'border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10' 
                     : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg'
                 }`}
               >
                 <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
-                  isDark ? 'bg-indigo-500/20 text-indigo-300 group-hover:bg-indigo-500/30' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
+                  isDark ? 'bg-slate-800 text-slate-300 group-hover:bg-slate-700' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
                 }`}>
                   <ShieldCheck className="h-8 w-8" />
                 </div>
                 <h2 className={`mt-6 text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   Super Admin
                 </h2>
-                <p className={`mt-2 text-sm ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>
+                <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Full system access with lecturer management, global analytics, and audit controls.
                 </p>
-                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-indigo-600'}`}>
                   <span>Access Dashboard</span>
                   <span className="transition-transform group-hover:translate-x-1">→</span>
                 </div>
@@ -1788,22 +1788,22 @@ const Gateway = ({
                 onClick={() => setLoginView('lecturer')}
                 className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
                   isDark 
-                    ? 'border-indigo-400/20 bg-gradient-to-br from-sky-950/50 to-slate-900 hover:border-sky-400/50 hover:shadow-sky-500/10' 
+                    ? 'border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10' 
                     : 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-lg'
                 }`}
               >
                 <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
-                  isDark ? 'bg-sky-500/20 text-sky-300 group-hover:bg-sky-500/30' : 'bg-sky-50 text-sky-600 group-hover:bg-sky-100'
+                  isDark ? 'bg-slate-800 text-slate-300 group-hover:bg-slate-700' : 'bg-sky-50 text-sky-600 group-hover:bg-sky-100'
                 }`}>
                   <Users className="h-8 w-8" />
                 </div>
                 <h2 className={`mt-6 text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   Lecturer
                 </h2>
-                <p className={`mt-2 text-sm ${isDark ? 'text-sky-200' : 'text-slate-500'}`}>
+                <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Class attendance management, student verification, and session reports.
                 </p>
-                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-sky-300' : 'text-sky-600'}`}>
+                <div className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-sky-600'}`}>
                   <span>Access Dashboard</span>
                   <span className="transition-transform group-hover:translate-x-1">→</span>
                 </div>
@@ -1823,14 +1823,14 @@ const Gateway = ({
               <form
                 onSubmit={handleSuperLogin}
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-indigo-400/20 bg-white/5' : 'border-slate-200 bg-white'
+                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
                 }`}
               >
                 <button
                   type="button"
                   onClick={goBack}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-indigo-300 hover:text-indigo-200' : 'text-indigo-600 hover:text-indigo-700'
+                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-indigo-600 hover:text-indigo-700'
                   }`}
                 >
                   <span>←</span>
@@ -1839,7 +1839,7 @@ const Gateway = ({
                 
                 <div className="flex items-center gap-4">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
+                    isDark ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'
                   }`}>
                     <ShieldCheck className="h-7 w-7" />
                   </div>
@@ -1847,14 +1847,14 @@ const Gateway = ({
                     <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       Super Admin Login
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       System administration access
                     </p>
                   </div>
                 </div>
                 
                 <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-indigo-400/20 bg-indigo-500/10 text-indigo-200' : 'border-indigo-100 bg-indigo-50 text-indigo-700'
+                  isDark ? 'border-slate-700 bg-slate-800/50 text-slate-400' : 'border-indigo-100 bg-indigo-50 text-indigo-700'
                 }`}>
                   <p className="font-medium">Demo credentials:</p>
                   <p className="mt-1">Username: <code className="font-mono">admin</code> | Password: <code className="font-mono">admin</code></p>
@@ -1862,7 +1862,7 @@ const Gateway = ({
 
                 <div className="mt-6 space-y-4">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Username
                     </label>
                     <input
@@ -1870,12 +1870,12 @@ const Gateway = ({
                       onChange={(event) => setCredentials({ ...credentials, username: event.target.value })}
                       placeholder="Enter username"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-indigo-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Password
                     </label>
                     <input
@@ -1884,7 +1884,7 @@ const Gateway = ({
                       onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
                       placeholder="Enter password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-indigo-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
@@ -1911,14 +1911,14 @@ const Gateway = ({
             >
               <div
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-indigo-400/20 bg-white/5' : 'border-slate-200 bg-white'
+                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
                 }`}
               >
                 <button
                   type="button"
                   onClick={goBack}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-sky-300 hover:text-sky-200' : 'text-sky-600 hover:text-sky-700'
+                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-sky-600 hover:text-sky-700'
                   }`}
                 >
                   <span>←</span>
@@ -1927,7 +1927,7 @@ const Gateway = ({
                 
                 <div className="flex items-center gap-4">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-sky-500/20 text-sky-300' : 'bg-sky-50 text-sky-600'
+                    isDark ? 'bg-slate-800 text-slate-300' : 'bg-sky-50 text-sky-600'
                   }`}>
                     <Users className="h-7 w-7" />
                   </div>
@@ -1935,14 +1935,14 @@ const Gateway = ({
                     <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       Lecturer Login
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-sky-200' : 'text-slate-500'}`}>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       Class attendance management
                     </p>
                   </div>
                 </div>
                 
                 <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-sky-400/20 bg-sky-500/10 text-sky-200' : 'border-sky-100 bg-sky-50 text-sky-700'
+                  isDark ? 'border-slate-700 bg-slate-800/50 text-slate-400' : 'border-sky-100 bg-sky-50 text-sky-700'
                 }`}>
                   <p className="font-medium">Demo credentials:</p>
                   <p className="mt-1">Email: <code className="font-mono text-[11px]">sarah.johnson@university.edu</code></p>
@@ -1951,7 +1951,7 @@ const Gateway = ({
 
                 <form onSubmit={handleLecturerLogin} className="mt-6 space-y-4">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-sky-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Email Address
                     </label>
                     <input
@@ -1959,12 +1959,12 @@ const Gateway = ({
                       onChange={(event) => setLecturerLogin({ ...lecturerLogin, email: event.target.value })}
                       placeholder="Enter your email"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-sky-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-sky-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Password
                     </label>
                     <input
@@ -1973,7 +1973,7 @@ const Gateway = ({
                       onChange={(event) => setLecturerLogin({ ...lecturerLogin, password: event.target.value })}
                       placeholder="Enter password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-sky-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
@@ -1986,15 +1986,15 @@ const Gateway = ({
                   </button>
                 </form>
                 
-                <div className={`mt-6 border-t pt-6 ${isDark ? 'border-indigo-400/20' : 'border-slate-200'}`}>
-                  <p className={`text-center text-sm ${isDark ? 'text-indigo-200' : 'text-slate-500'}`}>
+                <div className={`mt-6 border-t pt-6 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <p className={`text-center text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     Don't have an account?
                   </p>
                   <button
                     onClick={() => setLoginView('lecturer-signup')}
                     className={`mt-3 w-full rounded-xl border px-4 py-3 text-sm font-semibold transition ${
                       isDark 
-                        ? 'border-indigo-400/40 text-indigo-100 hover:bg-white/5' 
+                        ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
                         : 'border-slate-200 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -2016,14 +2016,14 @@ const Gateway = ({
             >
               <div
                 className={`rounded-2xl border p-8 shadow-lg ${
-                  isDark ? 'border-indigo-400/20 bg-white/5' : 'border-slate-200 bg-white'
+                  isDark ? 'border-slate-700 bg-slate-900/50' : 'border-slate-200 bg-white'
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setLoginView('lecturer')}
                   className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${
-                    isDark ? 'text-sky-300 hover:text-sky-200' : 'text-sky-600 hover:text-sky-700'
+                    isDark ? 'text-slate-400 hover:text-slate-300' : 'text-sky-600 hover:text-sky-700'
                   }`}
                 >
                   <span>←</span>
@@ -2032,7 +2032,7 @@ const Gateway = ({
                 
                 <div className="flex items-center gap-4">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                    isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-50 text-emerald-600'
+                    isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
                   }`}>
                     <UserPlus className="h-7 w-7" />
                   </div>
@@ -2040,14 +2040,14 @@ const Gateway = ({
                     <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       Lecturer Registration
                     </h2>
-                    <p className={`text-xs ${isDark ? 'text-emerald-200' : 'text-slate-500'}`}>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       Create your access account
                     </p>
                   </div>
                 </div>
                 
                 <div className={`mt-6 rounded-xl border p-3 text-xs ${
-                  isDark ? 'border-amber-400/20 bg-amber-500/10 text-amber-200' : 'border-amber-100 bg-amber-50 text-amber-700'
+                  isDark ? 'border-amber-800/30 bg-amber-900/20 text-amber-400' : 'border-amber-100 bg-amber-50 text-amber-700'
                 }`}>
                   <p>⚠️ New accounts require admin approval before activation.</p>
                 </div>
@@ -2055,7 +2055,7 @@ const Gateway = ({
                 <form onSubmit={handleLecturerSignup} className="mt-6 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         Full Name
                       </label>
                       <input
@@ -2063,12 +2063,12 @@ const Gateway = ({
                         onChange={(event) => setLecturerForm({ ...lecturerForm, name: event.target.value })}
                         placeholder="Dr. John Smith"
                         className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                          isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                          isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                         }`}
                       />
                     </div>
                     <div>
-                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                      <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         Email Address
                       </label>
                       <input
@@ -2076,13 +2076,13 @@ const Gateway = ({
                         onChange={(event) => setLecturerForm({ ...lecturerForm, email: event.target.value })}
                         placeholder="john@university.edu"
                         className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                          isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                          isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                         }`}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Assigned Class
                     </label>
                     <input
@@ -2090,12 +2090,12 @@ const Gateway = ({
                       onChange={(event) => setLecturerForm({ ...lecturerForm, className: event.target.value })}
                       placeholder="e.g. Database System (CSC 301)"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-indigo-200' : 'text-slate-600'}`}>
+                    <label className={`block text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                       Password
                     </label>
                     <input
@@ -2104,7 +2104,7 @@ const Gateway = ({
                       onChange={(event) => setLecturerForm({ ...lecturerForm, password: event.target.value })}
                       placeholder="Create a secure password"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 ${
-                        isDark ? 'border-indigo-400/30 bg-slate-950/60 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
+                        isDark ? 'border-slate-600 bg-slate-800 text-white placeholder-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400'
                       }`}
                     />
                   </div>
@@ -2121,7 +2121,7 @@ const Gateway = ({
           )}
         </AnimatePresence>
         
-        <footer className={`mt-10 text-center text-xs ${isDark ? 'text-indigo-100' : 'text-slate-500'}`}>
+        <footer className={`mt-10 text-center text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
           Designed and Developed by Joshua Joel and Adeyemi Favour
         </footer>
       </div>
@@ -2140,7 +2140,7 @@ function App() {
   const [activeLecturerId, setActiveLecturerId] = useState<string | null>(() =>
     window.localStorage.getItem('mas-lecturer-id'),
   )
-  const [theme, setTheme] = useState<ThemeMode>('dark')
+  const [theme, setTheme] = useState<ThemeMode>('light')
 
   useEffect(() => {
     if (role === 'none') {

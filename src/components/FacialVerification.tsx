@@ -28,7 +28,6 @@ const FacialVerification = ({
     facingMode: 'user'
   }
 
-  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setVerificationStatus('scanning')
@@ -40,30 +39,26 @@ const FacialVerification = ({
     }
   }, [isOpen])
 
-  // Simulated face detection with auto-verification
   useEffect(() => {
     if (!isOpen || verificationStatus !== 'scanning' || hasTriggeredVerification.current) return
 
     let detectionCount = 0
-    const requiredDetections = 8 // Need consistent detection for ~1.5 seconds
+    const requiredDetections = 8
     
     const interval = setInterval(() => {
-      // Simulate face detection (in production, use a face detection library like face-api.js)
-      const detected = Math.random() > 0.25 // 75% chance of detection per frame
+      const detected = Math.random() > 0.25
       
       if (detected) {
         detectionCount++
         setFaceDetected(true)
         setDetectionProgress((detectionCount / requiredDetections) * 100)
         
-        // Auto-trigger verification after consistent face detection
         if (detectionCount >= requiredDetections && !hasTriggeredVerification.current) {
           hasTriggeredVerification.current = true
           clearInterval(interval)
           handleAutoCapture()
         }
       } else {
-        // Reset if face lost
         if (detectionCount > 0) {
           detectionCount = Math.max(0, detectionCount - 2)
           setDetectionProgress((detectionCount / requiredDetections) * 100)
@@ -81,20 +76,16 @@ const FacialVerification = ({
     if (webcamRef.current) {
       setVerificationStatus('detecting')
       
-      // Brief pause to show "Face Detected" state
       setTimeout(() => {
         const imageSrc = webcamRef.current?.getScreenshot()
         if (imageSrc) {
           setCapturedImage(imageSrc)
           setVerificationStatus('verifying')
           
-          // Simulate verification process
           setTimeout(() => {
-            // 85% success rate for demo
             const isSuccess = Math.random() > 0.15
             setVerificationStatus(isSuccess ? 'success' : 'failed')
             
-            // Auto close after showing result
             setTimeout(() => {
               onVerificationComplete(isSuccess, imageSrc)
             }, 1200)
@@ -147,7 +138,7 @@ const FacialVerification = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-lg rounded-2xl border border-indigo-400/40 bg-slate-900 p-6 shadow-2xl"
+          className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -155,13 +146,13 @@ const FacialVerification = ({
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                 verificationStatus === 'success' ? 'bg-emerald-500/20 text-emerald-300' :
                 verificationStatus === 'failed' ? 'bg-rose-500/20 text-rose-300' :
-                'bg-indigo-500/20 text-indigo-300'
+                'bg-slate-800 text-slate-300'
               }`}>
                 <ScanFace className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-white">Facial Verification</h2>
-                <p className="text-xs text-indigo-200">
+                <p className="text-xs text-slate-400">
                   {verificationStatus === 'scanning' && 'Position your face within the frame'}
                   {verificationStatus === 'detecting' && 'Face detected! Capturing...'}
                   {verificationStatus === 'verifying' && 'Verifying identity...'}
@@ -179,7 +170,7 @@ const FacialVerification = ({
           </div>
 
           {/* Camera View */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-950 border border-indigo-400/20">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-950 border border-slate-700">
             {cameraError ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                 <AlertTriangle className="h-12 w-12 text-rose-400 mb-4" />
@@ -192,25 +183,23 @@ const FacialVerification = ({
                 </button>
               </div>
             ) : capturedImage && verificationStatus !== 'scanning' ? (
-              // Show captured image during/after verification
               <div className="relative w-full h-full">
                 <img 
                   src={capturedImage} 
                   alt="Captured" 
                   className="w-full h-full object-cover"
                 />
-                {/* Verification overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60">
                   {verificationStatus === 'verifying' && (
                     <div className="text-center">
                       <div className="relative">
                         <Loader2 className="h-16 w-16 text-indigo-400 animate-spin mx-auto" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <ScanFace className="h-8 w-8 text-indigo-300" />
+                          <ScanFace className="h-8 w-8 text-slate-300" />
                         </div>
                       </div>
                       <p className="mt-4 text-sm font-semibold text-white">Verifying identity...</p>
-                      <p className="text-xs text-indigo-200">Analyzing facial features</p>
+                      <p className="text-xs text-slate-400">Analyzing facial features</p>
                     </div>
                   )}
                   {verificationStatus === 'success' && (
@@ -223,7 +212,7 @@ const FacialVerification = ({
                         <CheckCircle2 className="h-12 w-12 text-emerald-400" />
                       </div>
                       <p className="mt-4 text-lg font-semibold text-emerald-400">Verified!</p>
-                      <p className="text-sm text-indigo-200">Identity confirmed</p>
+                      <p className="text-sm text-slate-400">Identity confirmed</p>
                     </motion.div>
                   )}
                   {verificationStatus === 'failed' && (
@@ -236,13 +225,12 @@ const FacialVerification = ({
                         <AlertTriangle className="h-12 w-12 text-rose-400" />
                       </div>
                       <p className="mt-4 text-lg font-semibold text-rose-400">Verification Failed</p>
-                      <p className="text-sm text-indigo-200">Face not recognized</p>
+                      <p className="text-sm text-slate-400">Face not recognized</p>
                     </motion.div>
                   )}
                 </div>
               </div>
             ) : (
-              // Live camera feed
               <>
                 <Webcam
                   ref={webcamRef}
@@ -254,9 +242,7 @@ const FacialVerification = ({
                   mirrored
                 />
                 
-                {/* Face guide overlay */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {/* Face oval guide */}
                   <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <ellipse 
                       cx="50" 
@@ -271,7 +257,6 @@ const FacialVerification = ({
                     />
                   </svg>
                   
-                  {/* Scanning animation when detecting */}
                   {verificationStatus === 'detecting' && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <motion.div
@@ -283,7 +268,6 @@ const FacialVerification = ({
                     </div>
                   )}
                   
-                  {/* Progress bar for face detection */}
                   {verificationStatus === 'scanning' && (
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="mx-auto max-w-xs">
@@ -296,7 +280,7 @@ const FacialVerification = ({
                           />
                         </div>
                         <p className={`mt-2 text-center text-xs font-medium ${
-                          faceDetected ? 'text-emerald-300' : 'text-indigo-300'
+                          faceDetected ? 'text-emerald-300' : 'text-slate-300'
                         }`}>
                           {faceDetected 
                             ? detectionProgress < 100 
@@ -308,12 +292,11 @@ const FacialVerification = ({
                     </div>
                   )}
 
-                  {/* Status indicator */}
                   <div className="absolute top-4 left-1/2 -translate-x-1/2">
                     <div className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold backdrop-blur-sm ${
                       faceDetected 
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                        : 'bg-slate-900/60 text-indigo-300 border border-indigo-500/40'
+                        : 'bg-slate-900/60 text-slate-300 border border-slate-600'
                     }`}>
                       <div className={`h-2 w-2 rounded-full ${faceDetected ? 'bg-emerald-400 animate-pulse' : 'bg-indigo-400'}`} />
                       {verificationStatus === 'scanning' && (faceDetected ? 'Face Detected - Hold Still' : 'Looking for face...')}
@@ -325,12 +308,11 @@ const FacialVerification = ({
             )}
           </div>
 
-          {/* Instructions - only show during scanning */}
           {verificationStatus === 'scanning' && (
-            <div className="mt-4 rounded-xl border border-indigo-400/20 bg-slate-950/50 p-3">
+            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800/50 p-3">
               <div className="flex items-start gap-3">
-                <Camera className="h-5 w-5 text-indigo-300 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-indigo-200">
+                <Camera className="h-5 w-5 text-slate-300 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-slate-400">
                   <p className="font-semibold text-white mb-1">Auto-verification enabled</p>
                   <p>Position your face within the oval guide. Verification will start automatically when your face is detected.</p>
                 </div>
@@ -338,13 +320,12 @@ const FacialVerification = ({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="mt-4 flex gap-3">
             {verificationStatus === 'failed' ? (
               <>
                 <button
                   onClick={handleRetry}
-                  className="flex-1 rounded-xl border border-indigo-400/30 px-4 py-3 text-sm font-semibold text-indigo-100 transition hover:bg-white/5"
+                  className="flex-1 rounded-xl border border-slate-600 px-4 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5"
                 >
                   Try Again
                 </button>
@@ -358,7 +339,7 @@ const FacialVerification = ({
             ) : verificationStatus === 'scanning' ? (
               <button
                 onClick={handleClose}
-                className="w-full rounded-xl border border-indigo-400/30 px-4 py-3 text-sm font-semibold text-indigo-100 transition hover:bg-white/5"
+                className="w-full rounded-xl border border-slate-600 px-4 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5"
               >
                 Cancel
               </button>

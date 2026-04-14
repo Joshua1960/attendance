@@ -68,19 +68,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
               initial={{ opacity: 0, x: 100, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
-              className={`rounded-xl border ${getBorderColor(notification.type)} bg-slate-900/95 backdrop-blur-sm p-4 shadow-2xl`}
+              className={`rounded-xl border ${getBorderColor(notification.type)} bg-white/95 backdrop-blur-sm p-4 shadow-2xl`}
             >
               <div className="flex items-start gap-3">
                 {getIcon(notification.type)}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white">{notification.title}</p>
+                  <p className="text-sm font-semibold text-slate-900">{notification.title}</p>
                   {notification.message && (
-                    <p className="text-xs text-slate-400 mt-1">{notification.message}</p>
+                    <p className="text-xs text-slate-500 mt-1">{notification.message}</p>
                   )}
                 </div>
                 <button
                   onClick={() => removeNotification(notification.id)}
-                  className="text-slate-500 hover:text-slate-300 transition"
+                  className="text-slate-400 hover:text-slate-600 transition"
                 >
                   <X className="h-4 w-4" />
                 </button>

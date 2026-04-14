@@ -18,13 +18,13 @@ const StatCard = ({ label, value, icon, trend, variant = 'default' }: StatCardPr
       animate={{ opacity: 1, y: 0 }}
       className={`rounded-2xl border p-5 shadow-sm backdrop-blur transition-all hover:shadow-lg ${
         isDashboard
-          ? 'border-indigo-400/30 bg-white/5 hover:border-indigo-400/50'
+          ? 'border-slate-700 bg-slate-900/50 hover:border-slate-500'
           : 'border-slate-200/70 bg-white/80'
       }`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-sm font-medium ${isDashboard ? 'text-indigo-200' : 'text-slate-500'}`}>
+          <p className={`text-sm font-medium ${isDashboard ? 'text-slate-400' : 'text-slate-500'}`}>
             {label}
           </p>
           <p className={`mt-2 text-3xl font-bold ${isDashboard ? 'text-white' : 'text-slate-900'}`}>
@@ -37,7 +37,7 @@ const StatCard = ({ label, value, icon, trend, variant = 'default' }: StatCardPr
           )}
         </div>
         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-          isDashboard ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
+          isDashboard ? 'bg-slate-800 text-slate-300' : 'bg-indigo-50 text-indigo-600'
         }`}>
           {icon}
         </div>

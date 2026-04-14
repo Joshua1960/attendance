@@ -33,7 +33,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
     facingMode: 'user'
   }
 
-  // Reset state when face mode is activated
   useEffect(() => {
     if (isFaceMode) {
       setVerificationStatus('scanning')
@@ -47,7 +46,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
     }
   }, [isFaceMode])
 
-  // Auto face detection and verification
   useEffect(() => {
     if (!isFaceMode || verificationStatus !== 'scanning' || hasTriggeredVerification.current) return
 
@@ -138,13 +136,11 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
     setCameraError('Camera access denied. Please grant permission.')
   }, [])
 
-  // Fingerprint scanning with animation
   const handleStartFingerprint = () => {
     setIsFingerprintMode(true)
     setFingerprintStatus('scanning')
     setFingerprintProgress(0)
     
-    // Animate progress
     let progress = 0
     const progressInterval = setInterval(() => {
       progress += Math.random() * 15 + 5
@@ -154,11 +150,9 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
         setFingerprintProgress(100)
         setFingerprintStatus('verifying')
         
-        // Trigger actual fingerprint scan
         setTimeout(() => {
           onFingerprint()
           
-          // Simulate result (actual result comes from parent)
           setTimeout(() => {
             const isSuccess = Math.random() > 0.15
             setFingerprintStatus(isSuccess ? 'success' : 'failed')
@@ -190,7 +184,7 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg sm:text-xl font-bold">Live Biometric Console</h2>
-          <p className="text-xs sm:text-sm text-indigo-100">
+          <p className="text-xs sm:text-sm text-white/80">
             {isFaceMode ? 'Facial Recognition Active' : isFingerprintMode ? 'Fingerprint Scanning' : 'ESP32-S3 camera & R307 fingerprint'}
           </p>
         </div>
@@ -201,7 +195,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
         </div>
       </div>
 
-      {/* Camera View - Shows when face mode is active */}
       <AnimatePresence>
         {isFaceMode && (
           <motion.div
@@ -233,7 +226,7 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                     {verificationStatus === 'verifying' && (
                       <div className="text-center">
                         <div className="relative">
-                          <Loader2 className="h-12 w-12 text-indigo-300 animate-spin mx-auto" />
+                          <Loader2 className="h-12 w-12 text-white/70 animate-spin mx-auto" />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <ScanFace className="h-6 w-6 text-white" />
                           </div>
@@ -279,7 +272,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                     mirrored
                   />
                   
-                  {/* Face guide overlay */}
                   <div className="absolute inset-0 pointer-events-none">
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                       <ellipse 
@@ -304,7 +296,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                       />
                     )}
                     
-                    {/* Status indicator */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2">
                       <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${
                         faceDetected 
@@ -316,7 +307,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                       </div>
                     </div>
 
-                    {/* Progress bar */}
                     {verificationStatus === 'scanning' && (
                       <div className="absolute bottom-2 left-2 right-2">
                         <div className="h-1 w-full rounded-full bg-black/40 overflow-hidden">
@@ -334,7 +324,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
               )}
             </div>
 
-            {/* Cancel / Retry buttons */}
             <div className="mt-3 flex gap-2">
               {verificationStatus === 'failed' ? (
                 <>
@@ -365,7 +354,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
         )}
       </AnimatePresence>
 
-      {/* Fingerprint Scanning View */}
       <AnimatePresence>
         {isFingerprintMode && (
           <motion.div
@@ -375,11 +363,8 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
             className="mt-4 overflow-hidden"
           >
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-950 border border-white/20 flex items-center justify-center">
-              {/* Fingerprint Animation */}
               <div className="relative flex flex-col items-center justify-center">
-                {/* Fingerprint icon with scanning effect */}
                 <div className="relative">
-                  {/* Outer pulsing ring */}
                   {fingerprintStatus === 'scanning' && (
                     <>
                       <motion.div
@@ -399,7 +384,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                     </>
                   )}
                   
-                  {/* Main fingerprint icon */}
                   <motion.div
                     className={`flex h-16 w-16 items-center justify-center rounded-full ${
                       fingerprintStatus === 'success' ? 'bg-emerald-500/30' :
@@ -414,14 +398,13 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                     ) : fingerprintStatus === 'failed' ? (
                       <AlertTriangle className="h-10 w-10 text-rose-400" />
                     ) : fingerprintStatus === 'verifying' ? (
-                      <Loader2 className="h-10 w-10 text-indigo-300 animate-spin" />
+                      <Loader2 className="h-10 w-10 text-white/70 animate-spin" />
                     ) : (
-                      <Fingerprint className={`h-10 w-10 ${fingerprintStatus === 'scanning' ? 'text-indigo-300' : 'text-white/70'}`} />
+                      <Fingerprint className={`h-10 w-10 ${fingerprintStatus === 'scanning' ? 'text-white/70' : 'text-white/50'}`} />
                     )}
                   </motion.div>
                 </div>
 
-                {/* Scanning line animation */}
                 {fingerprintStatus === 'scanning' && (
                   <motion.div
                     className="absolute left-1/2 -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent"
@@ -431,7 +414,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                   />
                 )}
 
-                {/* Status text */}
                 <p className={`mt-4 text-sm font-semibold ${
                   fingerprintStatus === 'success' ? 'text-emerald-400' :
                   fingerprintStatus === 'failed' ? 'text-rose-400' :
@@ -443,7 +425,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                   {fingerprintStatus === 'failed' && 'Verification Failed'}
                 </p>
 
-                {/* Progress bar */}
                 {(fingerprintStatus === 'scanning' || fingerprintStatus === 'verifying') && (
                   <div className="mt-4 w-48">
                     <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
@@ -454,13 +435,12 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
                         transition={{ duration: 0.2 }}
                       />
                     </div>
-                    <p className="mt-2 text-xs text-indigo-200 text-center">{Math.round(fingerprintProgress)}%</p>
+                    <p className="mt-2 text-xs text-white/70 text-center">{Math.round(fingerprintProgress)}%</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Cancel button */}
             {(fingerprintStatus === 'scanning' || fingerprintStatus === 'failed') && (
               <div className="mt-3">
                 <button
@@ -476,7 +456,6 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
         )}
       </AnimatePresence>
       
-      {/* Action Buttons - Hide when any mode is active */}
       {!isFaceMode && !isFingerprintMode && (
         <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
           <motion.button
@@ -502,10 +481,9 @@ const BiometricConsole = ({ onFingerprint, onFaceVerificationComplete }: Biometr
         </div>
       )}
       
-      {/* System Signal - Hide when any mode is active */}
       {!isFaceMode && !isFingerprintMode && (
         <div className="mt-4 sm:mt-6 rounded-xl border border-white/20 bg-white/10 p-3 sm:p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-indigo-100">System Signal</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-white/80">System Signal</p>
           <div className="mt-2 flex items-center gap-2">
             {isScanning && (
               <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />

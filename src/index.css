@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #020617;
-  --color-foreground: #f8fafc;
+  --color-background: #f8fafc;
+  --color-foreground: #1a1a2e;
   --color-primary: #6366f1;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #1e293b;
-  --color-secondary-foreground: #e2e8f0;
+  --color-secondary: #e2e8f0;
+  --color-secondary-foreground: #334155;
   --color-accent: #0ea5e9;
   --color-accent-foreground: #ffffff;
-  --color-muted: #334155;
-  --color-muted-foreground: #94a3b8;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
@@ -29,17 +29,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(241, 245, 249, 0.8);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.4);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(99, 102, 241, 0.6);
 }
 
 /* Animation classes */
