@@ -828,8 +828,8 @@ const Dashboard = ({
                             }
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${
                               lecturer.status === "Active"
-                                ? "bg-emerald-900/30 text-emerald-400"
-                                : "bg-amber-500/20 text-amber-300"
+                                ? "bg-blue-100 text-emerald-600"
+                                : "bg-blue-100 text-amber-600"
                             }`}
                           >
                             {lecturer.status}
