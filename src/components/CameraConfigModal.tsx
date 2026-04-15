@@ -109,7 +109,7 @@ const CameraConfigModal = ({
             initial={{ scale: 0.95, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.95, y: 20, opacity: 0 }}
-            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 overflow-hidden max-h-[90vh] overflow-y-auto"
           >
             {/* Header - Compact */}
             <div className="relative bg-gradient-to-r from-indigo-600 to-sky-500 px-4 py-4 sm:px-5 sm:py-5">

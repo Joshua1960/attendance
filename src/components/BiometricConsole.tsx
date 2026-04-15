@@ -2,7 +2,6 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import Webcam from 'react-webcam'
 import { Fingerprint, ScanFace, X, CheckCircle2, AlertTriangle, Loader2, Wifi, Camera } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useBiometric } from '../contexts/BiometricContext'
 import type { Student } from '../contexts/MasStoreContext'
 
 type FaceVerificationStatus = 'idle' | 'scanning' | 'detecting' | 'verifying' | 'success' | 'failed'
@@ -28,6 +27,12 @@ interface BiometricConsoleProps {
   isScanning: boolean
   cameraConfig?: CameraConfig
   onOpenCameraSettings?: () => void
+  stats?: {
+    totalStudents: number
+    activeLecturers: number
+    totalScans: number
+    activeSessions: number
+  }
 }
 
 const BiometricConsole = ({ 
@@ -38,7 +43,6 @@ const BiometricConsole = ({
   cameraConfig = { type: 'webcam' },
   onOpenCameraSettings
 }: BiometricConsoleProps) => {
-  const { lastSignal } = useBiometric()
   const webcamRef = useRef<Webcam>(null)
   const externalImgRef = useRef<HTMLImageElement>(null)
   
@@ -320,21 +324,21 @@ const BiometricConsole = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="rounded-2xl border border-indigo-400/30 bg-gradient-to-br from-indigo-600 via-indigo-500 to-sky-500 p-3 sm:p-4 text-white shadow-xl"
+      className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 sm:p-4"
     >
       {/* Header - Compact */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-base sm:text-lg font-bold">Take Attendance</h2>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Take Attendance</h2>
         </div>
         <div className="flex items-center gap-2">
           {isExternalCamera && (
-            <div className="flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-xs">
+            <div className="flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-700 dark:text-slate-300">
               <Wifi className="h-3 w-3" />
               <span className="hidden sm:inline">External</span>
             </div>
           )}
-          <div className={`rounded-full bg-white/15 p-1.5 sm:p-2 ${(isScanning || isFaceMode || isFingerprintMode) ? 'animate-pulse' : ''}`}>
+          <div className={`rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 p-1.5 sm:p-2 ${(isScanning || isFaceMode || isFingerprintMode) ? 'animate-pulse' : ''}`}>
             {isFaceMode ? <ScanFace className="h-4 w-4 sm:h-5 sm:w-5" /> : 
              isFingerprintMode ? <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5" /> :
              <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5" />}
@@ -342,10 +346,8 @@ const BiometricConsole = ({
         </div>
       </div>
 
-      {/* Main Content Area - Scanner + Result */}
-      <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-        {/* Scanner Area */}
-        <div className="space-y-2">
+      {/* Scanner Area */}
+      <div className="space-y-3">
           <AnimatePresence>
             {isFaceMode && (
               <motion.div
@@ -622,7 +624,7 @@ const BiometricConsole = ({
                 whileTap={{ scale: 0.98 }}
                 onClick={handleStartFingerprint}
                 disabled={isScanning}
-                className="flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Fingerprint className="h-4 w-4" />
                 Fingerprint
@@ -632,7 +634,7 @@ const BiometricConsole = ({
                 whileTap={{ scale: 0.98 }}
                 onClick={handleStartFaceVerification}
                 disabled={isScanning}
-                className="flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <ScanFace className="h-4 w-4" />
                 Face ID
@@ -642,7 +644,7 @@ const BiometricConsole = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onOpenCameraSettings}
-                  className="flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition hover:bg-white/25"
+                  className="flex items-center gap-2 rounded-lg bg-slate-600 hover:bg-slate-700 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition"
                 >
                   <Camera className="h-4 w-4" />
                   <span className="hidden sm:inline">Camera</span>
@@ -650,21 +652,20 @@ const BiometricConsole = ({
               )}
             </div>
           )}
-        </div>
 
-        {/* Scan Result Panel */}
-        <div className="rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/80">Scan Result</p>
+        {/* Scan Result Panel - Moved below buttons */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Scan Result</p>
           <div className="mt-2 space-y-2">
             {isScanning ? (
-              <div className="space-y-2 rounded-xl border border-white/20 bg-white/5 p-3">
-                <div className="h-3 w-20 animate-pulse rounded-full bg-white/40" />
-                <div className="h-2 w-32 animate-pulse rounded-full bg-white/30" />
+              <div className="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-3">
+                <div className="h-3 w-20 animate-pulse rounded-full bg-slate-300 dark:bg-slate-700" />
+                <div className="h-2 w-32 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
                 <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 animate-pulse rounded-full bg-white/40" />
+                  <div className="h-10 w-10 animate-pulse rounded-full bg-slate-300 dark:bg-slate-700" />
                   <div className="space-y-1.5">
-                    <div className="h-2 w-24 animate-pulse rounded-full bg-white/40" />
-                    <div className="h-2 w-16 animate-pulse rounded-full bg-white/30" />
+                    <div className="h-2 w-24 animate-pulse rounded-full bg-slate-300 dark:bg-slate-700" />
+                    <div className="h-2 w-16 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
                   </div>
                 </div>
               </div>
@@ -674,12 +675,12 @@ const BiometricConsole = ({
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-xl border p-3 ${
                   scanResult.status === 'success'
-                    ? 'border-emerald-400/40 bg-emerald-500/20'
-                    : 'border-rose-400/50 bg-rose-500/20'
+                    ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20'
                 }`}
               >
                 {scanResult.capturedImage && (
-                  <div className="mb-2 overflow-hidden rounded-lg border border-white/20">
+                  <div className="mb-2 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
                     <img
                       src={scanResult.capturedImage}
                       alt="Captured face"
@@ -687,11 +688,15 @@ const BiometricConsole = ({
                     />
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-sm font-semibold">
+                <div className={`flex items-center gap-2 text-sm font-semibold ${
+                  scanResult.status === 'success' 
+                    ? 'text-emerald-700 dark:text-emerald-300' 
+                    : 'text-rose-700 dark:text-rose-300'
+                }`}>
                   {scanResult.status === 'success' ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                    <CheckCircle2 className="h-4 w-4" />
                   ) : (
-                    <AlertTriangle className="h-4 w-4 text-rose-300" />
+                    <AlertTriangle className="h-4 w-4" />
                   )}
                   <span>
                     {scanResult.status === 'success'
@@ -699,34 +704,38 @@ const BiometricConsole = ({
                       : 'Verification Failed'}
                   </span>
                 </div>
-                <p className="mt-1.5 text-xs text-white/80">
+                <p className={`mt-1.5 text-xs ${
+                  scanResult.status === 'success'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-rose-600 dark:text-rose-400'
+                }`}>
                   {scanResult.message}
                 </p>
                 {scanResult.status === 'success' && scanResult.student ? (
-                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-white/10 p-2">
+                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2">
                     <img
                       src={scanResult.capturedImage || scanResult.student.photoUrl}
                       alt={scanResult.student.name}
-                      className="h-8 w-8 rounded-full border border-white/20 object-cover"
+                      className="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
                     />
                     <div>
-                      <p className="text-xs font-semibold">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white">
                         {scanResult.student.name}
                       </p>
-                      <p className="text-[10px] text-white/70">
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400">
                         {scanResult.student.matricNumber}
                       </p>
                     </div>
                   </div>
                 ) : null}
-                <p className="mt-1.5 text-[10px] text-white/60">
+                <p className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-500">
                   {scanResult.timestamp}
                 </p>
               </motion.div>
             ) : (
-              <div className="rounded-xl border border-white/20 bg-white/5 p-3 text-center">
-                <Fingerprint className="h-6 w-6 mx-auto text-white/40 mb-1.5" />
-                <p className="text-xs text-white/60">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-3 text-center">
+                <Fingerprint className="h-6 w-6 mx-auto text-slate-400 dark:text-slate-600 mb-1.5" />
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   Run a scan to see results
                 </p>
               </div>

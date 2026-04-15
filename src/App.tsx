@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Activity,
   Database,
   Fingerprint,
   ShieldCheck,
@@ -17,7 +16,6 @@ import {
   BarChart3,
   Upload,
   X,
-  Camera,
 } from "lucide-react";
 import { BiometricProvider, useBiometric } from "./contexts/BiometricContext";
 import { MasStoreProvider, useMasStore } from "./contexts/MasStoreContext";
@@ -40,7 +38,6 @@ const Dashboard = ({
   onToggleTheme,
   activeLecturerId,
   cameraConfig,
-  onSaveCameraConfig,
   onOpenCameraSettings,
 }: {
   role: Role;
@@ -49,7 +46,6 @@ const Dashboard = ({
   onToggleTheme: () => void;
   activeLecturerId: string | null;
   cameraConfig: CameraConfig;
-  onSaveCameraConfig: (config: CameraConfig) => void;
   onOpenCameraSettings: () => void;
 }) => {
   const { scanFingerprint, isScanning } = useBiometric();
@@ -66,8 +62,6 @@ const Dashboard = ({
     addLecturer,
     deleteLecturer,
     deleteLogsByDate,
-    importStudents,
-    getStudentAttendance,
     getAttendanceRate,
   } = useMasStore();
   const { success, error: notifyError, info } = useNotification();
@@ -134,8 +128,6 @@ const Dashboard = ({
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
   const [importExportModalOpen, setImportExportModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(null);
-  const [cameraSettingsOpen, setCameraSettingsOpen] = useState(false);
 
   const resolvedLecturerId = activeLecturerId ?? internalLecturerId;
   const activeLecturer = lecturers.find(
@@ -146,7 +138,6 @@ const Dashboard = ({
     isSuccess: boolean,
     capturedImage: string | null
   ) => {
-    setLastCapturedImage(capturedImage);
 
     const availableStudents =
       role === "lecturer" && activeLecturer
@@ -254,7 +245,6 @@ const Dashboard = ({
     const isSuccess = Math.random() > 0.15;
 
     if (!isSuccess) {
-      setLastCapturedImage(null);
       setScanResult({
         status: "error",
         timestamp,
@@ -264,7 +254,6 @@ const Dashboard = ({
       return;
     }
 
-    setLastCapturedImage(null);
     addLog({
       id: `log-${Date.now()}`,
       studentId: activeStudent.id,
@@ -529,11 +518,6 @@ const Dashboard = ({
     setSelectedStudent(student);
   };
 
-  const lecturersById = useMemo(
-    () => Object.fromEntries(lecturers.map((l) => [l.id, l.name])),
-    [lecturers],
-  );
-
   // Stats for BiometricConsole
   const consoleStats = {
     totalStudents: students.length,
@@ -546,292 +530,322 @@ const Dashboard = ({
     <div
       className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
     >
-      <div
-        className={
+      {/* Professional Navbar */}
+      <nav
+        className={`sticky top-0 z-40 border-b backdrop-blur-lg ${
           isDark
-            ? "bg-gradient-to-br from-gray-950 via-slate-950 to-slate-900"
-            : "bg-gradient-to-br from-white via-slate-50 to-indigo-50"
-        }
+            ? "border-slate-800 bg-slate-950/80"
+            : "border-slate-200 bg-white/80"
+        }`}
       >
-        <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+          {/* Logo and Brand */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-indigo-600"
             >
-              <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </motion.div>
-            <div>
+            <div className="flex flex-col">
               <h1
-                className={`text-lg sm:text-xl font-bold md:text-2xl ${headingText}`}
+                className={`text-base sm:text-lg font-bold tracking-tight ${headingText}`}
               >
-                <span className="hidden sm:inline">
+                <span className="hidden md:inline">
                   Multimodal Attendance System
                 </span>
-                <span className="sm:hidden">M.A.S.</span>
+                <span className="md:hidden">M.A.S.</span>
               </h1>
-              <p className={`text-xs ${bodyText} hidden sm:block`}>
-                M.A.S. Dashboard
+              <p className={`text-[10px] sm:text-xs ${subtleText} hidden sm:block`}>
+                Biometric Attendance Management
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+
+          {/* Center - User Info */}
+          <div className="hidden lg:flex items-center gap-3">
             <div
-              className={`hidden items-center gap-2 text-xs lg:flex ${isDark ? "text-slate-400" : "text-slate-500"}`}
+              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 ${
+                isDark ? "bg-slate-900" : "bg-slate-50"
+              }`}
             >
-              <span
-                className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}
-              >
-                Provider Pattern
-              </span>
-              <span
-                className={`rounded-full border px-3 py-1 ${isDark ? "border-slate-600" : "border-slate-300"}`}
-              >
-                Hardware Simulation
+              <ShieldCheck
+                className={`h-4 w-4 ${
+                  role === "super" ? "text-indigo-500" : "text-emerald-500"
+                }`}
+              />
+              <span className={`text-xs font-semibold ${headingText}`}>
+                {role === "super" ? "Super Admin" : "Lecturer"}
               </span>
             </div>
+            {role === "lecturer" && activeLecturer && (
+              <div className={`text-xs ${bodyText}`}>
+                <span className="font-medium">{activeLecturer.name}</span>
+                <span className="mx-1.5">•</span>
+                <span>{activeLecturer.className}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Right - Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onToggleTheme}
-              className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition ${isDark ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${
+                isDark
+                  ? "bg-slate-900 text-slate-300 hover:bg-slate-800"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {isDark ? (
                 <Sun className="h-4 w-4" />
               ) : (
                 <Moon className="h-4 w-4" />
               )}
-              <span className="hidden sm:inline">
-                {isDark ? "Light" : "Dark"}
-              </span>
+            </button>
+            <button
+              onClick={onLogout}
+              className={`flex items-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs font-semibold transition ${
+                isDark
+                  ? "bg-slate-900 text-slate-300 hover:bg-slate-800"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
-        </header>
-
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6 text-sm">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <span
-              className={`rounded-full px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wide ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-700"}`}
-            >
-              {role === "super" ? "Super Admin" : "Lecturer"}
-            </span>
-            {role === "lecturer" && activeLecturer ? (
-              <span className={`text-xs ${bodyText} hidden sm:inline`}>
-                {activeLecturer.name} • {activeLecturer.className}
-              </span>
-            ) : (
-              <span className={`text-xs ${bodyText} hidden sm:inline`}>
-                System Overview & Global Control
-              </span>
-            )}
-          </div>
-          <button
-            onClick={onLogout}
-            className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition ${isDark ? "border-slate-600 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign out</span>
-          </button>
         </div>
+      </nav>
 
-        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 pb-12">
+      <div
+        className={
+          isDark
+            ? "bg-slate-950"
+            : "bg-slate-50"
+        }
+      >
+
+        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
           <div className="space-y-6">
-            {/* Redesigned Biometric Console - All in one card */}
-            <BiometricConsole
-              onFingerprint={() => handleScan("Fingerprint")}
-              onFaceVerificationComplete={handleFacialVerificationComplete}
-              scanResult={scanResult}
-              isScanning={isScanning}
-              stats={consoleStats}
-              cameraConfig={cameraConfig}
-              onOpenCameraSettings={onOpenCameraSettings}
-            />
-
-            {/* Session Control for Lecturers */}
+            {/* Lecturer Layout */}
             {role === "lecturer" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`rounded-2xl border p-5 ${
-                  isDark
-                    ? "border-slate-700 bg-slate-900/50"
-                    : "border-slate-200 bg-white"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`text-sm font-semibold ${headingText}`}>
-                      Attendance Session
-                    </p>
-                    <p className={`text-xs ${bodyText}`}>
-                      {activeSession
-                        ? `${activeSession.label} • ${activeSession.date} • Started ${activeSession.start}`
-                        : "No active session. Start one to begin tracking."}
-                    </p>
+              <>
+                {/* Session Control - Full Width Above */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`rounded-2xl border p-5 ${
+                    isDark
+                      ? "border-slate-700 bg-slate-900/50"
+                      : "border-slate-200 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-semibold ${headingText}`}>
+                        Attendance Session
+                      </p>
+                      <p className={`text-xs ${bodyText}`}>
+                        {activeSession
+                          ? `${activeSession.label} • ${activeSession.date} • Started ${activeSession.start}`
+                          : "No active session. Start one to begin tracking."}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {!activeSession && (
+                        <button
+                          onClick={() => setSessionPromptOpen(true)}
+                          className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400"
+                        >
+                          Start Session
+                        </button>
+                      )}
+                      {activeSession && (
+                        <button
+                          onClick={() => setSessionClosePrompt(true)}
+                          className={`flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold transition hover:bg-rose-500/10 ${isDark ? "text-rose-300" : "text-rose-600"}`}
+                        >
+                          <Clock className="h-4 w-4" />
+                          Close Session
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    {!activeSession && (
+                </motion.div>
+
+                {/* Take Attendance and Lecturer Command Center Side by Side */}
+                <div className="grid gap-6 lg:grid-cols-[40%_60%]">
+                  {/* Take Attendance - 40% width */}
+                  <BiometricConsole
+                    onFingerprint={() => handleScan("Fingerprint")}
+                    onFaceVerificationComplete={handleFacialVerificationComplete}
+                    scanResult={scanResult}
+                    isScanning={isScanning}
+                    stats={consoleStats}
+                    cameraConfig={cameraConfig}
+                    onOpenCameraSettings={onOpenCameraSettings}
+                  />
+
+                  {/* Lecturer Command Center - 60% width */}
+                  <div
+                    className={`rounded-2xl border p-4 sm:p-6 ${
+                      isDark
+                        ? "border-slate-700 bg-slate-900/50"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    <h2 className={`text-lg font-semibold ${headingText}`}>
+                      Lecturer Command Center
+                    </h2>
+                    <p className={`mt-2 text-sm ${bodyText}`}>
+                      Access attendance records and export reports for your class.
+                    </p>
+                    <div className="mt-6 space-y-4 text-sm">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                        >
+                          <BookOpen className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className={`font-semibold ${headingText}`}>
+                            Class Assigned
+                          </p>
+                          <p className={bodyText}>
+                            {activeLecturer?.className ?? "No class assigned"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                        >
+                          <Database className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className={`font-semibold ${headingText}`}>
+                            Records Captured
+                          </p>
+                          <p className={bodyText}>
+                            {lecturerLogs.length} entries logged.
+                          </p>
+                        </div>
+                      </div>
                       <button
-                        onClick={() => setSessionPromptOpen(true)}
-                        className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-400"
+                        onClick={exportAttendance}
+                        className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${isDark ? "border-slate-600 bg-slate-800 text-white hover:bg-slate-700" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
                       >
-                        Start Session
+                        <FileDown className="h-4 w-4" />
+                        Export Attendance CSV
                       </button>
-                    )}
-                    {activeSession && (
-                      <button
-                        onClick={() => setSessionClosePrompt(true)}
-                        className={`flex items-center gap-2 rounded-full border border-rose-400/40 px-4 py-2 text-xs font-semibold transition hover:bg-rose-500/10 ${isDark ? "text-rose-300" : "text-rose-600"}`}
-                      >
-                        <Clock className="h-4 w-4" />
-                        Close Session
-                      </button>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </motion.div>
+              </>
             )}
 
-            {/* Right Panel for Super Admin */}
+            {/* Super Admin Layout */}
             {role === "super" && (
-              <div
-                className={`rounded-2xl border p-4 sm:p-6 ${
-                  isDark
-                    ? "border-slate-700 bg-slate-900/50"
-                    : "border-slate-200 bg-white"
-                }`}
-              >
-                <h2 className={`text-lg font-semibold ${headingText}`}>
-                  System Overview
-                </h2>
-                <p className={`mt-2 text-sm ${bodyText}`}>
-                  Manage lecturers, view global analytics, and control system
-                  access.
-                </p>
-                <div className="mt-4 grid gap-3 grid-cols-2">
-                  <button
-                    onClick={() => setAddLecturerModalOpen(true)}
-                    className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
-                  >
-                    <UserPlus className="mb-2 h-5 w-5" />
-                    Add Lecturer
-                  </button>
-                  <button
-                    onClick={() => setAssignLecturerModalOpen(true)}
-                    className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
-                  >
-                    <Users className="mb-2 h-5 w-5" />
-                    Assign Students
-                  </button>
-                </div>
-                <div className="mt-6 space-y-3 text-sm max-h-48 sm:max-h-64 overflow-y-auto">
-                  {lecturers.map((lecturer) => (
-                    <div
-                      key={lecturer.id}
-                      className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
-                    >
-                      <div>
-                        <p className={`font-semibold ${headingText}`}>
-                          {lecturer.name}
-                        </p>
-                        <p className={`text-xs ${bodyText}`}>
-                          {lecturer.className}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            updateLecturerStatus(
-                              lecturer.id,
-                              lecturer.status === "Active"
-                                ? "Pending"
-                                : "Active",
-                            )
-                          }
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            lecturer.status === "Active"
-                              ? "bg-emerald-900/30 text-emerald-400"
-                              : "bg-amber-500/20 text-amber-300"
-                          }`}
-                        >
-                          {lecturer.status}
-                        </button>
-                        <button
-                          onClick={() =>
-                            setConfirmDialog({
-                              type: "lecturer",
-                              id: lecturer.id,
-                              name: lecturer.name,
-                            })
-                          }
-                          className={`rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold ${isDark ? "text-rose-300" : "text-rose-600"}`}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {lecturers.length === 0 && (
-                    <p className={`text-center text-sm ${bodyText}`}>
-                      No lecturers registered yet.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+              <div className="grid gap-6 lg:grid-cols-[40%_60%]">
+                {/* Take Attendance - 40% width */}
+                <BiometricConsole
+                  onFingerprint={() => handleScan("Fingerprint")}
+                  onFaceVerificationComplete={handleFacialVerificationComplete}
+                  scanResult={scanResult}
+                  isScanning={isScanning}
+                  stats={consoleStats}
+                  cameraConfig={cameraConfig}
+                  onOpenCameraSettings={onOpenCameraSettings}
+                />
 
-            {/* Lecturer Command Center */}
-            {role === "lecturer" && (
-              <div
-                className={`rounded-2xl border p-4 sm:p-6 ${
-                  isDark
-                    ? "border-slate-700 bg-slate-900/50"
-                    : "border-slate-200 bg-white"
-                }`}
-              >
-                <h2 className={`text-lg font-semibold ${headingText}`}>
-                  Lecturer Command Center
-                </h2>
-                <p className={`mt-2 text-sm ${bodyText}`}>
-                  Access attendance records and export reports for your class.
-                </p>
-                <div className="mt-6 space-y-4 text-sm">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                {/* System Overview - 60% width */}
+                <div
+                  className={`rounded-2xl border p-4 sm:p-6 ${
+                    isDark
+                      ? "border-slate-700 bg-slate-900/50"
+                      : "border-slate-200 bg-white"
+                  }`}
+                >
+                  <h2 className={`text-lg font-semibold ${headingText}`}>
+                    System Overview
+                  </h2>
+                  <p className={`mt-2 text-sm ${bodyText}`}>
+                    Manage lecturers, view global analytics, and control system
+                    access.
+                  </p>
+                  <div className="mt-4 grid gap-3 grid-cols-2">
+                    <button
+                      onClick={() => setAddLecturerModalOpen(true)}
+                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                     >
-                      <BookOpen className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className={`font-semibold ${headingText}`}>
-                        Class Assigned
-                      </p>
-                      <p className={bodyText}>
-                        {activeLecturer?.className ?? "No class assigned"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`mt-1 rounded-lg p-2 ${isDark ? "bg-slate-800 text-slate-400" : "bg-indigo-50 text-indigo-600"}`}
+                      <UserPlus className="mb-2 h-5 w-5" />
+                      Add Lecturer
+                    </button>
+                    <button
+                      onClick={() => setAssignLecturerModalOpen(true)}
+                      className={`rounded-xl border px-3 sm:px-4 py-3 text-left text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
                     >
-                      <Database className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className={`font-semibold ${headingText}`}>
-                        Records Captured
-                      </p>
-                      <p className={bodyText}>
-                        {lecturerLogs.length} entries logged.
-                      </p>
-                    </div>
+                      <Users className="mb-2 h-5 w-5" />
+                      Assign Students
+                    </button>
                   </div>
-                  <button
-                    onClick={exportAttendance}
-                    className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${isDark ? "border-slate-600 bg-slate-800 text-white hover:bg-slate-700" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
-                  >
-                    <FileDown className="h-4 w-4" />
-                    Export Attendance CSV
-                  </button>
+                  <div className="mt-6 space-y-3 text-sm max-h-48 sm:max-h-64 overflow-y-auto">
+                    {lecturers.map((lecturer) => (
+                      <div
+                        key={lecturer.id}
+                        className={`flex items-center justify-between rounded-xl border p-3 ${isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}
+                      >
+                        <div>
+                          <p className={`font-semibold ${headingText}`}>
+                            {lecturer.name}
+                          </p>
+                          <p className={`text-xs ${bodyText}`}>
+                            {lecturer.className}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              updateLecturerStatus(
+                                lecturer.id,
+                                lecturer.status === "Active"
+                                  ? "Pending"
+                                  : "Active",
+                              )
+                            }
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              lecturer.status === "Active"
+                                ? "bg-emerald-900/30 text-emerald-400"
+                                : "bg-amber-500/20 text-amber-300"
+                            }`}
+                          >
+                            {lecturer.status}
+                          </button>
+                          <button
+                            onClick={() =>
+                              setConfirmDialog({
+                                type: "lecturer",
+                                id: lecturer.id,
+                                name: lecturer.name,
+                              })
+                            }
+                            className={`rounded-full border border-rose-400/40 px-3 py-1 text-xs font-semibold ${isDark ? "text-rose-300" : "text-rose-600"}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {lecturers.length === 0 && (
+                      <p className={`text-center text-sm ${bodyText}`}>
+                        No lecturers registered yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -1036,7 +1050,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg font-semibold text-white">
@@ -1087,7 +1101,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-rose-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-rose-400/40 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg font-semibold text-white">
@@ -1129,7 +1143,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-rose-400/40 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-rose-400/40 bg-slate-900 p-6"
             >
               <p className="text-lg font-semibold text-white">Confirm Delete</p>
               <p className="mt-2 text-sm text-slate-300">
@@ -1168,7 +1182,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1218,7 +1232,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1426,7 +1440,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1507,7 +1521,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1576,7 +1590,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-white">Add Lecturer</p>
@@ -1658,7 +1672,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-white">
@@ -1745,7 +1759,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1813,7 +1827,7 @@ const Dashboard = ({
             initial={{ scale: 0.95, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="text-lg font-semibold text-white">Student Profile</p>
@@ -1876,7 +1890,7 @@ const Dashboard = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between mb-4">
                 <p className="text-lg font-semibold text-white">Import/Export Students</p>
@@ -1918,7 +1932,7 @@ const Dashboard = ({
   );
 };
 
-type LoginView = "select" | "admin" | "lecturer" | "lecturer-signup";
+type LoginView = "select" | "admin" | "lecturer" | "lecturer-signup" | "signup";
 
 const Gateway = ({
   onAuthenticated,
@@ -2016,58 +2030,22 @@ const Gateway = ({
 
   return (
     <div
-      className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
+      className={`min-h-screen flex items-center justify-center ${isDark ? "bg-slate-950" : "bg-slate-50"}`}
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
-        <header className="flex flex-col gap-3">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? "bg-slate-800 text-slate-300" : "bg-indigo-50 text-indigo-600"}`}
-              >
-                <Fingerprint className="h-7 w-7" />
-              </div>
-              <div>
-                <h1
-                  className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  M.A.S. Access Gateway
-                </h1>
-                <p
-                  className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                >
-                  Multimodal Attendance System
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition hover:bg-white/10 ${
-                isDark
-                  ? "border-slate-600 text-slate-300"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              {isDark ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-              {isDark ? "Light Mode" : "Dark Mode"}
-            </button>
-          </motion.div>
-          <p
-            className={`max-w-2xl text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}
-          >
-            {loginView === "select"
-              ? "Select your role to access the attendance management system."
-              : "Authenticate to manage attendance operations, biometric audits, and course reporting."}
-          </p>
-        </header>
+      {/* Theme Toggle - Top Right */}
+      <button
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        className={`fixed top-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-lg transition ${
+          isDark
+            ? "bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800"
+            : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+        }`}
+        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
+
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-12">
 
         {authError && (
           <motion.div
@@ -2082,93 +2060,166 @@ const Gateway = ({
         <AnimatePresence mode="wait">
           {/* Role Selection Screen */}
           {loginView === "select" && (
-            <motion.div
-              key="select"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto w-full"
-            >
-              <motion.button
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setLoginView("admin")}
-                className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
-                  isDark
-                    ? "border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10"
-                    : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg"
-                }`}
+            <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+              {/* Left Side - Hero Content */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="space-y-8"
               >
-                <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
-                    isDark
-                      ? "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
-                      : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
-                  }`}
-                >
-                  <ShieldCheck className="h-8 w-8" />
+                <div className="space-y-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium ${
+                      isDark 
+                        ? "bg-indigo-900/30 text-indigo-400" 
+                        : "bg-indigo-100 text-indigo-700"
+                    }`}
+                  >
+                    <Fingerprint className="h-4 w-4" />
+                    <span>Biometric Authentication</span>
+                  </motion.div>
+                  
+                  <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className={`text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight ${isDark ? "text-white" : "text-slate-900"}`}
+                  >
+                    Multimodal
+                    <br />
+                    <span className="text-indigo-600 dark:text-indigo-500">
+                      Attendance
+                    </span>
+                    <br />
+                    System
+                  </motion.h1>
+                  
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className={`text-lg ${isDark ? "text-slate-400" : "text-slate-600"} max-w-lg`}
+                  >
+                    Secure, efficient attendance tracking with facial recognition and fingerprint verification. Built for modern educational institutions.
+                  </motion.p>
                 </div>
-                <h2
-                  className={`mt-6 text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  Super Admin
-                </h2>
-                <p
-                  className={`mt-2 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                >
-                  Full system access with lecturer management, global analytics,
-                  and audit controls.
-                </p>
-                <div
-                  className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? "text-slate-300" : "text-indigo-600"}`}
-                >
-                  <span>Access Dashboard</span>
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </div>
-              </motion.button>
 
-              <motion.button
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setLoginView("lecturer")}
-                className={`group rounded-2xl border p-8 text-left shadow-lg transition-all ${
-                  isDark
-                    ? "border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 hover:border-slate-500 hover:shadow-slate-500/10"
-                    : "border-slate-200 bg-white hover:border-sky-300 hover:shadow-lg"
-                }`}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${isDark ? "bg-slate-900" : "bg-indigo-50"}`}>
+                    <Fingerprint className="h-6 w-6 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>Facial and Fingerprint Biometrics</p>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Right Side - Role Selection Cards */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="space-y-4"
               >
-                <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors ${
+                <div className="space-y-3">
+                  <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                    Select Your Role
+                  </h2>
+                  <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                    Choose your access level to continue
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setLoginView("admin")}
+                    className={`group w-full rounded-2xl border p-6 text-left transition-all ${
+                      isDark
+                        ? "border-slate-800 bg-slate-900/50 hover:border-indigo-500/50 hover:bg-slate-900"
+                        : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                          isDark
+                            ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
+                            : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
+                        }`}>
+                          <ShieldCheck className="h-7 w-7" />
+                        </div>
+                        <div>
+                          <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                            Super Admin
+                          </h3>
+                          <p className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                            Full system access and control
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}>
+                        →
+                      </div>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setLoginView("lecturer")}
+                    className={`group w-full rounded-2xl border p-6 text-left transition-all ${
+                      isDark
+                        ? "border-slate-800 bg-slate-900/50 hover:border-indigo-500/50 hover:bg-slate-900"
+                        : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                          isDark
+                            ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
+                            : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
+                        }`}>
+                          <Users className="h-7 w-7" />
+                        </div>
+                        <div>
+                          <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                            Lecturer
+                          </h3>
+                          <p className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                            Manage class attendance and reports
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}>
+                        →
+                      </div>
+                    </div>
+                  </motion.button>
+
+                  <div className={`mt-6 rounded-xl border p-4 ${
                     isDark
-                      ? "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
-                      : "bg-sky-50 text-sky-600 group-hover:bg-sky-100"
-                  }`}
-                >
-                  <Users className="h-8 w-8" />
+                      ? "border-slate-800 bg-slate-900/30"
+                      : "border-indigo-100 bg-indigo-50/50"
+                  }`}>
+                    <p className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                      New lecturer? <button onClick={() => setLoginView("lecturer-signup")} className="text-indigo-600 hover:text-indigo-500 font-semibold">Create an account →</button>
+                    </p>
+                  </div>
                 </div>
-                <h2
-                  className={`mt-6 text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  Lecturer
-                </h2>
-                <p
-                  className={`mt-2 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                >
-                  Class attendance management, student verification, and session
-                  reports.
-                </p>
-                <div
-                  className={`mt-4 flex items-center gap-2 text-xs font-semibold ${isDark ? "text-slate-300" : "text-sky-600"}`}
-                >
-                  <span>Access Dashboard</span>
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </div>
-              </motion.button>
-            </motion.div>
+              </motion.div>
+            </div>
           )}
 
           {/* Admin Login Screen */}
@@ -2182,7 +2233,7 @@ const Gateway = ({
             >
               <form
                 onSubmit={handleSuperLogin}
-                className={`rounded-2xl border p-8 shadow-lg ${
+                className={`rounded-2xl border p-8 ${
                   isDark
                     ? "border-slate-700 bg-slate-900/50"
                     : "border-slate-200 bg-white"
@@ -2223,20 +2274,6 @@ const Gateway = ({
                       System administration access
                     </p>
                   </div>
-                </div>
-
-                <div
-                  className={`mt-6 rounded-xl border p-3 text-xs ${
-                    isDark
-                      ? "border-slate-700 bg-slate-800/50 text-slate-400"
-                      : "border-indigo-100 bg-indigo-50 text-indigo-700"
-                  }`}
-                >
-                  <p className="font-medium">Demo credentials:</p>
-                  <p className="mt-1">
-                    Username: <code className="font-mono">admin</code> |
-                    Password: <code className="font-mono">admin</code>
-                  </p>
                 </div>
 
                 <div className="mt-6 space-y-4">
@@ -2307,7 +2344,7 @@ const Gateway = ({
               className="mx-auto w-full max-w-md"
             >
               <div
-                className={`rounded-2xl border p-8 shadow-lg ${
+                className={`rounded-2xl border p-8 ${
                   isDark
                     ? "border-slate-700 bg-slate-900/50"
                     : "border-slate-200 bg-white"
@@ -2348,25 +2385,6 @@ const Gateway = ({
                       Class attendance management
                     </p>
                   </div>
-                </div>
-
-                <div
-                  className={`mt-6 rounded-xl border p-3 text-xs ${
-                    isDark
-                      ? "border-slate-700 bg-slate-800/50 text-slate-400"
-                      : "border-sky-100 bg-sky-50 text-sky-700"
-                  }`}
-                >
-                  <p className="font-medium">Demo credentials:</p>
-                  <p className="mt-1">
-                    Email:{" "}
-                    <code className="font-mono text-[11px]">
-                      sarah.johnson@university.edu
-                    </code>
-                  </p>
-                  <p>
-                    Password: <code className="font-mono">lecturer123</code>
-                  </p>
                 </div>
 
                 <form onSubmit={handleLecturerLogin} className="mt-6 space-y-4">
@@ -2457,7 +2475,7 @@ const Gateway = ({
               className="mx-auto w-full max-w-lg"
             >
               <div
-                className={`rounded-2xl border p-8 shadow-lg ${
+                className={`rounded-2xl border p-8 ${
                   isDark
                     ? "border-slate-700 bg-slate-900/50"
                     : "border-slate-200 bg-white"
@@ -2717,7 +2735,6 @@ function App() {
               }
               activeLecturerId={role === "lecturer" ? activeLecturerId : null}
               cameraConfig={cameraConfig}
-              onSaveCameraConfig={handleSaveCameraConfig}
               onOpenCameraSettings={() => setShowCameraModal(true)}
             />
           )}
