@@ -556,9 +556,9 @@ const Dashboard = ({
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-indigo-600"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center"
             >
-              <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <img src={UILogo} alt="Logo" />
             </motion.div>
             <div className="flex flex-col">
               <h1
