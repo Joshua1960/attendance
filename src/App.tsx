@@ -23,10 +23,14 @@ import {
   NotificationProvider,
   useNotification,
 } from "./contexts/NotificationContext";
-import BiometricConsole, { type ScanResult, type CameraConfig } from "./components/BiometricConsole";
+import BiometricConsole, {
+  type ScanResult,
+  type CameraConfig,
+} from "./components/BiometricConsole";
 import CameraConfigModal from "./components/CameraConfigModal";
 
 import type { Student } from "./contexts/MasStoreContext";
+import UILogo from "./assets/ui-logo.png";
 
 type Role = "none" | "super" | "lecturer";
 type ThemeMode = "dark" | "light";
@@ -72,7 +76,9 @@ const Dashboard = ({
   const bodyText = isDark ? "text-slate-300" : "text-slate-600";
   const subtleText = isDark ? "text-slate-400" : "text-slate-500";
 
-  const [scanResult, setScanResult] = useState<ScanResult | undefined>(undefined);
+  const [scanResult, setScanResult] = useState<ScanResult | undefined>(
+    undefined,
+  );
   const [registration, setRegistration] = useState({
     name: "",
     matric: "",
@@ -84,7 +90,9 @@ const Dashboard = ({
   });
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [enrolledFingerprint, setEnrolledFingerprint] = useState(false);
-  const [registrationMessage, setRegistrationMessage] = useState<string | null>(null);
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(
+    null,
+  );
   const [lecturerDraft, setLecturerDraft] = useState({
     name: "",
     email: "",
@@ -110,7 +118,9 @@ const Dashboard = ({
   const [, setSessionHistory] = useState<
     { label: string; date: string; start: string; end: string }[]
   >([]);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
+    string | null
+  >(null);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<
     | {
@@ -120,7 +130,9 @@ const Dashboard = ({
       }
     | undefined
   >(undefined);
-  const [studentModal, setStudentModal] = useState<"active" | "manage" | null>(null);
+  const [studentModal, setStudentModal] = useState<"active" | "manage" | null>(
+    null,
+  );
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
   const [addLecturerModalOpen, setAddLecturerModalOpen] = useState(false);
@@ -136,9 +148,8 @@ const Dashboard = ({
 
   const handleFacialVerificationComplete = (
     isSuccess: boolean,
-    capturedImage: string | null
+    capturedImage: string | null,
   ) => {
-
     const availableStudents =
       role === "lecturer" && activeLecturer
         ? students.filter((student) =>
@@ -558,7 +569,9 @@ const Dashboard = ({
                 </span>
                 <span className="md:hidden">M.A.S.</span>
               </h1>
-              <p className={`text-[10px] sm:text-xs ${subtleText} hidden sm:block`}>
+              <p
+                className={`text-[10px] sm:text-xs ${subtleText} hidden sm:block`}
+              >
                 Biometric Attendance Management
               </p>
             </div>
@@ -621,14 +634,7 @@ const Dashboard = ({
         </div>
       </nav>
 
-      <div
-        className={
-          isDark
-            ? "bg-slate-950"
-            : "bg-slate-50"
-        }
-      >
-
+      <div className={isDark ? "bg-slate-950" : "bg-slate-50"}>
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
           <div className="space-y-6">
             {/* Lecturer Layout */}
@@ -682,7 +688,9 @@ const Dashboard = ({
                   {/* Take Attendance - 40% width */}
                   <BiometricConsole
                     onFingerprint={() => handleScan("Fingerprint")}
-                    onFaceVerificationComplete={handleFacialVerificationComplete}
+                    onFaceVerificationComplete={
+                      handleFacialVerificationComplete
+                    }
                     scanResult={scanResult}
                     isScanning={isScanning}
                     stats={consoleStats}
@@ -702,7 +710,8 @@ const Dashboard = ({
                       Lecturer Command Center
                     </h2>
                     <p className={`mt-2 text-sm ${bodyText}`}>
-                      Access attendance records and export reports for your class.
+                      Access attendance records and export reports for your
+                      class.
                     </p>
                     <div className="mt-6 space-y-4 text-sm">
                       <div className="flex items-start gap-3">
@@ -1202,10 +1211,17 @@ const Dashboard = ({
               </div>
               <div className="space-y-2">
                 {(role === "super" ? logs : lecturerLogs).map((log) => (
-                  <div key={log.id} className="rounded-xl border border-slate-700 bg-slate-800/50 p-3 flex items-center justify-between">
+                  <div
+                    key={log.id}
+                    className="rounded-xl border border-slate-700 bg-slate-800/50 p-3 flex items-center justify-between"
+                  >
                     <div>
-                      <p className="text-sm font-semibold text-white">{log.studentName}</p>
-                      <p className="text-xs text-slate-400">{log.studentMatricNumber} • {log.className}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {log.studentName}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {log.studentMatricNumber} • {log.className}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-slate-300">{log.timestamp}</p>
@@ -1561,12 +1577,20 @@ const Dashboard = ({
                       className="h-10 w-10 rounded-full"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">{student.name}</p>
-                      <p className="text-xs text-slate-400">{student.matricNumber}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {student.name}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {student.matricNumber}
+                      </p>
                     </div>
-                    <span className={`rounded-full px-2 py-1 text-xs ${
-                      student.status === 'Active' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-amber-900/30 text-amber-400'
-                    }`}>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs ${
+                        student.status === "Active"
+                          ? "bg-emerald-900/30 text-emerald-400"
+                          : "bg-amber-900/30 text-amber-400"
+                      }`}
+                    >
                       {student.status}
                     </span>
                   </div>
@@ -1782,29 +1806,45 @@ const Dashboard = ({
                   <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
                     <p className="text-xs text-slate-400">Total Scans Today</p>
                     <p className="text-2xl font-bold text-white mt-1">
-                      {(role === "super" ? logs : lecturerLogs).filter(l => l.sessionDate === new Date().toISOString().slice(0, 10)).length}
+                      {
+                        (role === "super" ? logs : lecturerLogs).filter(
+                          (l) =>
+                            l.sessionDate ===
+                            new Date().toISOString().slice(0, 10),
+                        ).length
+                      }
                     </p>
                   </div>
                   <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
                     <p className="text-xs text-slate-400">Active Students</p>
                     <p className="text-2xl font-bold text-white mt-1">
-                      {students.filter(s => s.status === 'Active').length}
+                      {students.filter((s) => s.status === "Active").length}
                     </p>
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
-                  <p className="text-sm font-semibold text-white mb-3">Scan Methods</p>
+                  <p className="text-sm font-semibold text-white mb-3">
+                    Scan Methods
+                  </p>
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <p className="text-xs text-slate-400">Face ID</p>
                       <p className="text-lg font-bold text-indigo-400">
-                        {(role === "super" ? logs : lecturerLogs).filter(l => l.method === 'Face').length}
+                        {
+                          (role === "super" ? logs : lecturerLogs).filter(
+                            (l) => l.method === "Face",
+                          ).length
+                        }
                       </p>
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-slate-400">Fingerprint</p>
                       <p className="text-lg font-bold text-sky-400">
-                        {(role === "super" ? logs : lecturerLogs).filter(l => l.method === 'Fingerprint').length}
+                        {
+                          (role === "super" ? logs : lecturerLogs).filter(
+                            (l) => l.method === "Fingerprint",
+                          ).length
+                        }
                       </p>
                     </div>
                   </div>
@@ -1830,7 +1870,9 @@ const Dashboard = ({
             className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="text-lg font-semibold text-white">Student Profile</p>
+              <p className="text-lg font-semibold text-white">
+                Student Profile
+              </p>
               <button
                 onClick={() => setSelectedStudent(null)}
                 className="rounded-full p-2 text-slate-400 transition hover:bg-white/10"
@@ -1845,8 +1887,12 @@ const Dashboard = ({
                 className="h-16 w-16 rounded-full"
               />
               <div>
-                <p className="text-lg font-semibold text-white">{selectedStudent.name}</p>
-                <p className="text-sm text-slate-400">{selectedStudent.matricNumber}</p>
+                <p className="text-lg font-semibold text-white">
+                  {selectedStudent.name}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {selectedStudent.matricNumber}
+                </p>
               </div>
             </div>
             <div className="space-y-2 text-sm">
@@ -1860,7 +1906,13 @@ const Dashboard = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Status:</span>
-                <span className={selectedStudent.status === 'Active' ? 'text-emerald-400' : 'text-amber-400'}>
+                <span
+                  className={
+                    selectedStudent.status === "Active"
+                      ? "text-emerald-400"
+                      : "text-amber-400"
+                  }
+                >
                   {selectedStudent.status}
                 </span>
               </div>
@@ -1870,7 +1922,9 @@ const Dashboard = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Attendance Rate:</span>
-                <span className="text-indigo-400">{getAttendanceRate(selectedStudent.id)}%</span>
+                <span className="text-indigo-400">
+                  {getAttendanceRate(selectedStudent.id)}%
+                </span>
               </div>
             </div>
           </motion.div>
@@ -1893,7 +1947,9 @@ const Dashboard = ({
               className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <p className="text-lg font-semibold text-white">Import/Export Students</p>
+                <p className="text-lg font-semibold text-white">
+                  Import/Export Students
+                </p>
                 <button
                   onClick={() => setImportExportModalOpen(false)}
                   className="rounded-full p-2 text-slate-400 transition hover:bg-white/10"
@@ -1903,20 +1959,30 @@ const Dashboard = ({
               </div>
               <div className="space-y-4">
                 <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
-                  <p className="text-sm font-semibold text-white mb-2">Export Students</p>
-                  <p className="text-xs text-slate-400 mb-3">Download all student data as CSV</p>
+                  <p className="text-sm font-semibold text-white mb-2">
+                    Export Students
+                  </p>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Download all student data as CSV
+                  </p>
                   <button
                     onClick={() => {
-                      const csv = students.map(s => 
-                        `${s.name},${s.matricNumber},${s.program},${s.className}`
-                      ).join('\n');
-                      const blob = new Blob([`Name,Matric,Program,Class\n${csv}`], { type: 'text/csv' });
+                      const csv = students
+                        .map(
+                          (s) =>
+                            `${s.name},${s.matricNumber},${s.program},${s.className}`,
+                        )
+                        .join("\n");
+                      const blob = new Blob(
+                        [`Name,Matric,Program,Class\n${csv}`],
+                        { type: "text/csv" },
+                      );
                       const url = URL.createObjectURL(blob);
-                      const link = document.createElement('a');
+                      const link = document.createElement("a");
                       link.href = url;
-                      link.download = 'students.csv';
+                      link.download = "students.csv";
                       link.click();
-                      success('Exported', 'Student data exported to CSV.');
+                      success("Exported", "Student data exported to CSV.");
                     }}
                     className="w-full rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white"
                   >
@@ -2046,7 +2112,6 @@ const Gateway = ({
       </button>
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-12">
-
         {authError && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -2073,16 +2138,11 @@ const Gateway = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium ${
-                      isDark 
-                        ? "bg-indigo-900/30 text-indigo-400" 
-                        : "bg-indigo-100 text-indigo-700"
-                    }`}
+                    className={`inline-flex items-center gap-2 px-4 py-1.5 text-sm font-medium`}
                   >
-                    <Fingerprint className="h-4 w-4" />
-                    <span>Biometric Authentication</span>
+                    <img src={UILogo} alt="Logo" className="h-30 w-24" />
                   </motion.div>
-                  
+
                   <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -2091,20 +2151,20 @@ const Gateway = ({
                   >
                     Multimodal
                     <br />
-                    <span className="text-indigo-600 dark:text-indigo-500">
-                      Attendance
-                    </span>
+                    Attendance
                     <br />
                     System
                   </motion.h1>
-                  
+
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                     className={`text-lg ${isDark ? "text-slate-400" : "text-slate-600"} max-w-lg`}
                   >
-                    Secure, efficient attendance tracking with facial recognition and fingerprint verification. Built for modern educational institutions.
+                    Secure, efficient attendance tracking with facial
+                    recognition and fingerprint verification. Built for modern
+                    educational institutions.
                   </motion.p>
                 </div>
 
@@ -2114,11 +2174,17 @@ const Gateway = ({
                   transition={{ delay: 0.5 }}
                   className="flex items-center gap-3"
                 >
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${isDark ? "bg-slate-900" : "bg-indigo-50"}`}>
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${isDark ? "bg-slate-900" : "bg-indigo-50"}`}
+                  >
                     <Fingerprint className="h-6 w-6 text-indigo-600" />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>Facial and Fingerprint Biometrics</p>
+                    <p
+                      className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
+                    >
+                      Facial and Fingerprint Biometrics
+                    </p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -2131,10 +2197,14 @@ const Gateway = ({
                 className="space-y-4"
               >
                 <div className="space-y-3">
-                  <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                  <h2
+                    className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                  >
                     Select Your Role
                   </h2>
-                  <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  <p
+                    className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                  >
                     Choose your access level to continue
                   </p>
                 </div>
@@ -2152,23 +2222,31 @@ const Gateway = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
-                          isDark
-                            ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
-                            : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
-                        }`}>
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                            isDark
+                              ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
+                              : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
+                          }`}
+                        >
                           <ShieldCheck className="h-7 w-7" />
                         </div>
                         <div>
-                          <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                          <h3
+                            className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                          >
                             Super Admin
                           </h3>
-                          <p className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                          <p
+                            className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                          >
                             Full system access and control
                           </p>
                         </div>
                       </div>
-                      <div className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}>
+                      <div
+                        className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}
+                      >
                         →
                       </div>
                     </div>
@@ -2186,35 +2264,53 @@ const Gateway = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
-                          isDark
-                            ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
-                            : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
-                        }`}>
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                            isDark
+                              ? "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/10"
+                              : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100"
+                          }`}
+                        >
                           <Users className="h-7 w-7" />
                         </div>
                         <div>
-                          <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                          <h3
+                            className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}
+                          >
                             Lecturer
                           </h3>
-                          <p className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                          <p
+                            className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                          >
                             Manage class attendance and reports
                           </p>
                         </div>
                       </div>
-                      <div className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}>
+                      <div
+                        className={`rounded-lg p-2 transition-transform group-hover:translate-x-1 ${isDark ? "text-slate-600" : "text-slate-400"}`}
+                      >
                         →
                       </div>
                     </div>
                   </motion.button>
 
-                  <div className={`mt-6 rounded-xl border p-4 ${
-                    isDark
-                      ? "border-slate-800 bg-slate-900/30"
-                      : "border-indigo-100 bg-indigo-50/50"
-                  }`}>
-                    <p className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                      New lecturer? <button onClick={() => setLoginView("lecturer-signup")} className="text-indigo-600 hover:text-indigo-500 font-semibold">Create an account →</button>
+                  <div
+                    className={`mt-6 rounded-xl border p-4 ${
+                      isDark
+                        ? "border-slate-800 bg-slate-900/30"
+                        : "border-indigo-100 bg-indigo-50/50"
+                    }`}
+                  >
+                    <p
+                      className={`text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}
+                    >
+                      New lecturer?{" "}
+                      <button
+                        onClick={() => setLoginView("lecturer-signup")}
+                        className="text-indigo-600 hover:text-indigo-500 font-semibold"
+                      >
+                        Create an account →
+                      </button>
                     </p>
                   </div>
                 </div>
@@ -2599,7 +2695,7 @@ const Gateway = ({
                         isDark
                           ? "border-slate-600 bg-slate-800 text-white placeholder-slate-500"
                           : "border-slate-200 bg-white text-slate-900 placeholder-slate-400"
-                        }`}
+                      }`}
                     />
                   </div>
                   <div>
@@ -2660,7 +2756,7 @@ function App() {
     window.localStorage.getItem("mas-lecturer-id"),
   );
   const [theme, setTheme] = useState<ThemeMode>("light");
-  
+
   // Camera configuration state
   const [cameraConfig, setCameraConfig] = useState<CameraConfig>(() => {
     const stored = window.localStorage.getItem("mas-camera-config");
@@ -2668,12 +2764,12 @@ function App() {
       try {
         return JSON.parse(stored);
       } catch {
-        return { type: 'webcam' as const };
+        return { type: "webcam" as const };
       }
     }
-    return { type: 'webcam' as const };
+    return { type: "webcam" as const };
   });
-  
+
   // Show camera config modal for first-time users
   const [showCameraModal, setShowCameraModal] = useState(() => {
     const hasConfigured = window.localStorage.getItem("mas-camera-configured");
@@ -2714,7 +2810,7 @@ function App() {
             currentConfig={cameraConfig}
             isFirstTime={!window.localStorage.getItem("mas-camera-configured")}
           />
-          
+
           {role === "none" ? (
             <Gateway
               onAuthenticated={(nextRole, lecturerId) => {
